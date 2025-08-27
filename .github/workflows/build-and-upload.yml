@@ -55,12 +55,14 @@ jobs:
 
           # Extract from shipshipship section
           DEMO_URL=$(node -p "require('./package.json').shipshipship?.demoUrl || ''" 2>/dev/null || echo "")
-          FEATURES=$(node -p "JSON.stringify(require('./package.json').shipshipship?.features || [])" 2>/dev/null || echo "[]")
-          TAGS=$(node -p "JSON.stringify(require('./package.json').shipshipship?.tags || [])" 2>/dev/null || echo "[]")
+
+          # Create proper JSON files for complex data
+          node -p "JSON.stringify(require('./package.json').shipshipship?.features || [])" > /tmp/features.json
+          node -p "JSON.stringify(require('./package.json').shipshipship?.tags || [])" > /tmp/tags.json
 
           # Fallback to keywords if tags are empty
-          if [ "$TAGS" = "[]" ]; then
-            TAGS=$(node -p "JSON.stringify(require('./package.json').keywords || [])" 2>/dev/null || echo "[]")
+          if [ "$(cat /tmp/tags.json)" = "[]" ]; then
+            node -p "JSON.stringify(require('./package.json').keywords || [])" > /tmp/tags.json
           fi
 
           # Override with GitHub secrets/vars if provided
@@ -69,16 +71,14 @@ jobs:
           echo "display_name=$DISPLAY_NAME" >> $GITHUB_OUTPUT
           echo "description=$DESCRIPTION" >> $GITHUB_OUTPUT
           echo "demo_url=$DEMO_URL" >> $GITHUB_OUTPUT
-          echo "features=$FEATURES" >> $GITHUB_OUTPUT
-          echo "tags=$TAGS" >> $GITHUB_OUTPUT
 
           # Debug output
           echo "✅ Extracted theme info:"
           echo "  Display Name: $DISPLAY_NAME"
           echo "  Description: $DESCRIPTION"
           echo "  Demo URL: $DEMO_URL"
-          echo "  Features: $FEATURES"
-          echo "  Tags: $TAGS"
+          echo "  Features: $(cat /tmp/features.json)"
+          echo "  Tags: $(cat /tmp/tags.json)"
 
       - name: Upload theme to PocketBase
         env:
@@ -111,7 +111,17 @@ jobs:
 
           EXISTING_ID=$(echo $EXISTING_THEME | jq -r '.items[0].id // empty')
 
-          # Prepare form data
+          # Create metadata JSON
+          echo '{
+            "build_date": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'",
+            "commit_sha": "${{ github.sha }}",
+            "repository": "${{ github.repository }}"
+          }' > /tmp/metadata.json
+
+          # Create technologies JSON
+          echo '["SvelteKit", "TypeScript", "Tailwind CSS"]' > /tmp/technologies.json
+
+          # Prepare form data with proper JSON files
           FORM_DATA=(
             -F "owner=$USER_ID"
             -F "name=${{ github.event.repository.name }}"
@@ -120,10 +130,10 @@ jobs:
             -F "version=${{ github.ref_name }}"
             -F "demo_url=${{ steps.theme_info.outputs.demo_url }}"
             -F "build_file=@$ZIP_FILE"
-            -F "tags=${{ steps.theme_info.outputs.tags }}"
-            -F "features=${{ steps.theme_info.outputs.features }}"
-            -F "technologies=[\"SvelteKit\", \"TypeScript\", \"Tailwind CSS\"]"
-            -F "metadata={\"build_date\":\"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\",\"commit_sha\":\"${{ github.sha }}\",\"repository\":\"${{ github.repository }}\"}"
+            -F "tags=<@/tmp/tags.json"
+            -F "features=<@/tmp/features.json"
+            -F "technologies=<@/tmp/technologies.json"
+            -F "metadata=<@/tmp/metadata.json"
             -F "submission_status=pending"
           )
 
@@ -148,8 +158,8 @@ jobs:
             echo "🆔 Theme ID: $THEME_ID"
             echo "📦 Package: $ZIP_FILE"
             echo "🔗 Demo: ${{ steps.theme_info.outputs.demo_url }}"
-            echo "🏷️ Tags: ${{ steps.theme_info.outputs.tags }}"
-            echo "✨ Features: ${{ steps.theme_info.outputs.features }}"
+            echo "🏷️ Tags: $(cat /tmp/tags.json)"
+            echo "✨ Features: $(cat /tmp/features.json)"
           else
             echo "❌ Upload failed"
             echo "Response: $RESPONSE"
