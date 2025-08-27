@@ -88,7 +88,7 @@
                                         rel="noopener noreferrer"
                                         class="font-medium text-gray-700 dark:text-neutral-300 hover:text-gray-900 dark:hover:text-neutral-100 transition-colors flex items-center gap-1"
                                     >
-                                        ShipShipShip 🚢
+                                        ShipShipShip
                                     </a>
                                 </p>
                             </div>
