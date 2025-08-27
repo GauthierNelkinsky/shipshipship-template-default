@@ -161,7 +161,6 @@ jobs:
               -F "version=${{ github.ref_name }}" \
               -F "demo_url=${{ steps.theme_info.outputs.demo_url }}" \
               -F "build_file=@$ZIP_FILE" \
-
               -F "features=$FEATURES_JSON" \
               -F "technologies=$TECHNOLOGIES_JSON" \
               -F "metadata=$METADATA_JSON" \
