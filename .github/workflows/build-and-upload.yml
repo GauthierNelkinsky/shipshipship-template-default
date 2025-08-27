@@ -18,11 +18,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: "npm"
 
       - name: Clean install dependencies
         run: |
-          # Remove package-lock.json and node_modules to fix Rollup issue
           rm -rf package-lock.json node_modules
           npm install
 
@@ -51,13 +49,36 @@ jobs:
       - name: Extract theme info from package.json
         id: theme_info
         run: |
-          DISPLAY_NAME=$(node -p "require('./package.json').displayName || '${{ github.event.repository.name }}'" 2>/dev/null || echo "${{ github.event.repository.name }}")
+          # Extract basic info
+          DISPLAY_NAME=$(node -p "require('./package.json').displayName || require('./package.json').name || '${{ github.event.repository.name }}'" 2>/dev/null || echo "${{ github.event.repository.name }}")
           DESCRIPTION=$(node -p "require('./package.json').description || ''" 2>/dev/null || echo "")
-          DEMO_URL="${{ vars.DEMO_URL || secrets.DEMO_URL || '' }}"
+
+          # Extract from shipshipship section
+          DEMO_URL=$(node -p "require('./package.json').shipshipship?.demoUrl || ''" 2>/dev/null || echo "")
+          FEATURES=$(node -p "JSON.stringify(require('./package.json').shipshipship?.features || [])" 2>/dev/null || echo "[]")
+          TAGS=$(node -p "JSON.stringify(require('./package.json').shipshipship?.tags || [])" 2>/dev/null || echo "[]")
+
+          # Fallback to keywords if tags are empty
+          if [ "$TAGS" = "[]" ]; then
+            TAGS=$(node -p "JSON.stringify(require('./package.json').keywords || [])" 2>/dev/null || echo "[]")
+          fi
+
+          # Override with GitHub secrets/vars if provided
+          DEMO_URL="${{ vars.DEMO_URL || secrets.DEMO_URL || '$DEMO_URL' }}"
 
           echo "display_name=$DISPLAY_NAME" >> $GITHUB_OUTPUT
           echo "description=$DESCRIPTION" >> $GITHUB_OUTPUT
           echo "demo_url=$DEMO_URL" >> $GITHUB_OUTPUT
+          echo "features=$FEATURES" >> $GITHUB_OUTPUT
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+
+          # Debug output
+          echo "✅ Extracted theme info:"
+          echo "  Display Name: $DISPLAY_NAME"
+          echo "  Description: $DESCRIPTION"
+          echo "  Demo URL: $DEMO_URL"
+          echo "  Features: $FEATURES"
+          echo "  Tags: $TAGS"
 
       - name: Upload theme to PocketBase
         env:
@@ -99,7 +120,8 @@ jobs:
             -F "version=${{ github.ref_name }}"
             -F "demo_url=${{ steps.theme_info.outputs.demo_url }}"
             -F "build_file=@$ZIP_FILE"
-            -F "tags=[\"sveltekit\", \"theme\"]"
+            -F "tags=${{ steps.theme_info.outputs.tags }}"
+            -F "features=${{ steps.theme_info.outputs.features }}"
             -F "technologies=[\"SvelteKit\", \"TypeScript\", \"Tailwind CSS\"]"
             -F "metadata={\"build_date\":\"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\",\"commit_sha\":\"${{ github.sha }}\",\"repository\":\"${{ github.repository }}\"}"
             -F "submission_status=pending"
@@ -126,6 +148,8 @@ jobs:
             echo "🆔 Theme ID: $THEME_ID"
             echo "📦 Package: $ZIP_FILE"
             echo "🔗 Demo: ${{ steps.theme_info.outputs.demo_url }}"
+            echo "🏷️ Tags: ${{ steps.theme_info.outputs.tags }}"
+            echo "✨ Features: ${{ steps.theme_info.outputs.features }}"
           else
             echo "❌ Upload failed"
             echo "Response: $RESPONSE"
