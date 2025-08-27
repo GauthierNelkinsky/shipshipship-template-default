@@ -1,0 +1,131 @@
+name: Build and Upload Theme to PocketBase
+
+on:
+  push:
+    tags:
+      - "v*" # Triggers on version tags like v1.0.0
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build theme
+        run: npm run build
+
+      - name: Create theme manifest
+        run: |
+          echo '{
+            "name": "${{ github.event.repository.name }}",
+            "version": "${{ github.ref_name }}",
+            "built_with": "SvelteKit",
+            "build_date": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'",
+            "api_compatibility": "v1",
+            "commit_sha": "${{ github.sha }}",
+            "repository": "${{ github.repository }}"
+          }' > build/theme-manifest.json
+
+      - name: Create theme package
+        run: |
+          cd build
+          zip -r "../${{ github.event.repository.name }}-${{ github.ref_name }}.zip" .
+          cd ..
+          echo "ZIP_FILE=${{ github.event.repository.name }}-${{ github.ref_name }}.zip" >> $GITHUB_ENV
+
+      - name: Extract theme info from package.json
+        id: theme_info
+        run: |
+          # Get theme info from package.json or use defaults
+          DISPLAY_NAME=$(node -p "require('./package.json').displayName || '${{ github.event.repository.name }}'" 2>/dev/null || echo "${{ github.event.repository.name }}")
+          DESCRIPTION=$(node -p "require('./package.json').description || ''" 2>/dev/null || echo "")
+          DEMO_URL="${{ vars.DEMO_URL || secrets.DEMO_URL || '' }}"
+
+          echo "display_name=$DISPLAY_NAME" >> $GITHUB_OUTPUT
+          echo "description=$DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "demo_url=$DEMO_URL" >> $GITHUB_OUTPUT
+
+      - name: Upload theme to PocketBase
+        env:
+          POCKETBASE_URL: ${{ secrets.POCKETBASE_URL }}
+          POCKETBASE_EMAIL: ${{ secrets.POCKETBASE_EMAIL }}
+          POCKETBASE_PASSWORD: ${{ secrets.POCKETBASE_PASSWORD }}
+        run: |
+          # Authenticate with PocketBase
+          AUTH_RESPONSE=$(curl -s -X POST "$POCKETBASE_URL/api/collections/users/auth-with-password" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "identity": "'$POCKETBASE_EMAIL'",
+              "password": "'$POCKETBASE_PASSWORD'"
+            }')
+
+          TOKEN=$(echo $AUTH_RESPONSE | jq -r '.token')
+          USER_ID=$(echo $AUTH_RESPONSE | jq -r '.record.id')
+
+          if [ "$TOKEN" = "null" ] || [ -z "$TOKEN" ]; then
+            echo "❌ Authentication failed"
+            echo "Response: $AUTH_RESPONSE"
+            exit 1
+          fi
+
+          echo "✅ Authenticated successfully"
+
+          # Check if theme already exists
+          EXISTING_THEME=$(curl -s -X GET "$POCKETBASE_URL/api/collections/themes/records?filter=(name='${{ github.event.repository.name }}')" \
+            -H "Authorization: Bearer $TOKEN")
+
+          EXISTING_ID=$(echo $EXISTING_THEME | jq -r '.items[0].id // empty')
+
+          # Prepare form data
+          FORM_DATA=(
+            -F "owner=$USER_ID"
+            -F "name=${{ github.event.repository.name }}"
+            -F "display_name=${{ steps.theme_info.outputs.display_name }}"
+            -F "description=${{ steps.theme_info.outputs.description }}"
+            -F "version=${{ github.ref_name }}"
+            -F "demo_url=${{ steps.theme_info.outputs.demo_url }}"
+            -F "build_file=@$ZIP_FILE"
+            -F "tags=[\"sveltekit\", \"theme\"]"
+            -F "technologies=[\"SvelteKit\", \"TypeScript\", \"Tailwind CSS\"]"
+            -F "metadata={\"build_date\":\"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\",\"commit_sha\":\"${{ github.sha }}\",\"repository\":\"${{ github.repository }}\"}"
+            -F "submission_status=pending"
+          )
+
+          if [ -n "$EXISTING_ID" ]; then
+            # Update existing theme
+            echo "🔄 Updating existing theme (ID: $EXISTING_ID)"
+            RESPONSE=$(curl -s -X PATCH "$POCKETBASE_URL/api/collections/themes/records/$EXISTING_ID" \
+              -H "Authorization: Bearer $TOKEN" \
+              "${FORM_DATA[@]}")
+          else
+            # Create new theme
+            echo "🆕 Creating new theme"
+            RESPONSE=$(curl -s -X POST "$POCKETBASE_URL/api/collections/themes/records" \
+              -H "Authorization: Bearer $TOKEN" \
+              "${FORM_DATA[@]}")
+          fi
+
+          # Check if request was successful
+          if echo "$RESPONSE" | jq -e '.id' > /dev/null; then
+            THEME_ID=$(echo "$RESPONSE" | jq -r '.id')
+            echo "✅ Theme uploaded successfully!"
+            echo "🆔 Theme ID: $THEME_ID"
+            echo "📦 Package: $ZIP_FILE"
+            echo "🔗 Demo: ${{ steps.theme_info.outputs.demo_url }}"
+          else
+            echo "❌ Upload failed"
+            echo "Response: $RESPONSE"
+            exit 1
+          fi
