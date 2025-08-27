@@ -3,8 +3,8 @@ name: Build and Upload Theme to PocketBase
 on:
   push:
     tags:
-      - "v*" # Triggers on version tags like v1.0.0
-  workflow_dispatch: # Allows manual trigger
+      - "v*"
+  workflow_dispatch:
 
 jobs:
   build-and-upload:
@@ -20,8 +20,11 @@ jobs:
           node-version: "18"
           cache: "npm"
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Clean install dependencies
+        run: |
+          # Remove package-lock.json and node_modules to fix Rollup issue
+          rm -rf package-lock.json node_modules
+          npm install
 
       - name: Build theme
         run: npm run build
@@ -48,7 +51,6 @@ jobs:
       - name: Extract theme info from package.json
         id: theme_info
         run: |
-          # Get theme info from package.json or use defaults
           DISPLAY_NAME=$(node -p "require('./package.json').displayName || '${{ github.event.repository.name }}'" 2>/dev/null || echo "${{ github.event.repository.name }}")
           DESCRIPTION=$(node -p "require('./package.json').description || ''" 2>/dev/null || echo "")
           DEMO_URL="${{ vars.DEMO_URL || secrets.DEMO_URL || '' }}"
