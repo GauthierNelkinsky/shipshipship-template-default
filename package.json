@@ -1,10 +1,10 @@
 {
-  "name": "shipshipship-template-prism",
-  "description": "A beautiful changelog template for ShipShipShip - Prism theme",
+  "name": "shipshipship-template-default",
+  "description": "A beautiful changelog template for ShipShipShip",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "displayName": "Prism",
+  "displayName": "Default",
   "author": "ShipShipShip",
   "keywords": [
     "shipshipship",
