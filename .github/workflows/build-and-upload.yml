@@ -53,11 +53,7 @@ jobs:
           DESCRIPTION=$(node -p "require('./package.json').description || ''" 2>/dev/null || echo "")
           DEMO_URL=$(node -p "require('./package.json').shipshipship?.demoUrl || ''" 2>/dev/null || echo "")
           FEATURES=$(node -p "JSON.stringify(require('./package.json').shipshipship?.features || [])" 2>/dev/null || echo "[]")
-          TAGS=$(node -p "JSON.stringify(require('./package.json').shipshipship?.tags || [])" 2>/dev/null || echo "[]")
 
-          if [ "$TAGS" = "[]" ]; then
-            TAGS=$(node -p "JSON.stringify(require('./package.json').keywords || [])" 2>/dev/null || echo "[]")
-          fi
 
           DEMO_URL="${{ vars.DEMO_URL || secrets.DEMO_URL || '$DEMO_URL' }}"
 
@@ -65,14 +61,13 @@ jobs:
           echo "description=$DESCRIPTION" >> $GITHUB_OUTPUT
           echo "demo_url=$DEMO_URL" >> $GITHUB_OUTPUT
           echo "features=$FEATURES" >> $GITHUB_OUTPUT
-          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+
 
           echo "✅ Extracted theme info:"
           echo "  Display Name: $DISPLAY_NAME"
           echo "  Description: $DESCRIPTION"
           echo "  Demo URL: $DEMO_URL"
           echo "  Features: $FEATURES"
-          echo "  Tags: $TAGS"
 
       - name: Upload theme to PocketBase
         env:
@@ -104,13 +99,13 @@ jobs:
           EXISTING_ID=$(echo $EXISTING_THEME | jq -r '.items[0].id // empty')
 
           FEATURES_JSON='${{ steps.theme_info.outputs.features }}'
-          TAGS_JSON='${{ steps.theme_info.outputs.tags }}'
+
           TECHNOLOGIES_JSON='["SvelteKit", "TypeScript", "Tailwind CSS"]'
           METADATA_JSON='{"build_date":"'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'","commit_sha":"${{ github.sha }}","repository":"${{ github.repository }}"}'
 
           echo "🔍 Debug JSON data:"
           echo "  Features: $FEATURES_JSON"
-          echo "  Tags: $TAGS_JSON"
+
           echo "  Technologies: $TECHNOLOGIES_JSON"
           echo "  Metadata: $METADATA_JSON"
 
@@ -125,7 +120,7 @@ jobs:
             "description": "${{ steps.theme_info.outputs.description }}",
             "version": "${{ github.ref_name }}",
             "demo_url": "${{ steps.theme_info.outputs.demo_url }}",
-            "tags": $TAGS_JSON,
+
             "features": $FEATURES_JSON,
             "technologies": $TECHNOLOGIES_JSON,
             "metadata": $METADATA_JSON,
@@ -166,7 +161,7 @@ jobs:
               -F "version=${{ github.ref_name }}" \
               -F "demo_url=${{ steps.theme_info.outputs.demo_url }}" \
               -F "build_file=@$ZIP_FILE" \
-              -F "tags=$TAGS_JSON" \
+
               -F "features=$FEATURES_JSON" \
               -F "technologies=$TECHNOLOGIES_JSON" \
               -F "metadata=$METADATA_JSON" \
@@ -182,7 +177,7 @@ jobs:
             echo "🆔 Theme ID: $THEME_ID"
             echo "📦 Package: $ZIP_FILE"
             echo "🔗 Demo: ${{ steps.theme_info.outputs.demo_url }}"
-            echo "🏷️ Tags: $TAGS_JSON"
+
             echo "✨ Features: $FEATURES_JSON"
           else
             echo "❌ Upload failed"

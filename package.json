@@ -16,14 +16,10 @@
   "shipshipship": {
     "demoUrl": "https://prism-demo.yoursite.com",
     "features": [
-      "responsive",
-      "dark-mode",
-      "seo-optimized"
-    ],
-    "tags": [
-      "clear",
-      "minimal",
-      "responsive"
+      "Responsive",
+      "Dark-mode",
+      "Seo-optimized",
+      "Modern UI"
     ]
   },
   "scripts": {
