@@ -37,10 +37,10 @@
     class="{showBackButton
         ? 'border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'
         : 'border-b border-gray-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-sm'}
-        sticky top-0 z-40"
+        sticky top-0 z-40 py-2"
 >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-10 min-w-0">
+        <div class="flex items-center justify-between h-12 py-2 min-w-0">
             <!-- Back Button + Logo/Title -->
             <div
                 class="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1"
@@ -60,68 +60,87 @@
                         href={$settings.website_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity min-w-0 flex-1"
+                        class="flex items-center space-x-1 hover:opacity-80 transition-opacity min-w-0 flex-1"
                     >
                         {#if $settings?.logo_url}
-                            <img
-                                src={getCompleteImageUrl($settings.logo_url)}
-                                alt="Logo"
-                                class="h-8 max-h-8 w-auto object-contain dark:hidden"
-                            />
-                            {#if $settings?.dark_logo_url}
-                                <img
-                                    src={getCompleteImageUrl(
-                                        $settings.dark_logo_url,
-                                    )}
-                                    alt="Logo"
-                                    class="h-8 max-h-8 w-auto object-contain hidden dark:block"
-                                />
-                            {:else}
+                            <div class="py-2">
                                 <img
                                     src={getCompleteImageUrl(
                                         $settings.logo_url,
                                     )}
                                     alt="Logo"
-                                    class="h-8 max-h-8 w-auto object-contain hidden dark:block"
+                                    class="h-12 max-h-12 w-auto object-contain dark:hidden"
                                 />
+                            </div>
+                            {#if $settings?.dark_logo_url}
+                                <div class="py-2">
+                                    <img
+                                        src={getCompleteImageUrl(
+                                            $settings.dark_logo_url,
+                                        )}
+                                        alt="Logo"
+                                        class="h-12 max-h-12 w-auto object-contain hidden dark:block"
+                                    />
+                                </div>
+                            {:else}
+                                <div class="py-2">
+                                    <img
+                                        src={getCompleteImageUrl(
+                                            $settings.logo_url,
+                                        )}
+                                        alt="Logo"
+                                        class="h-12 max-h-12 w-auto object-contain hidden dark:block"
+                                    />
+                                </div>
                             {/if}
                         {/if}
                         <h1
-                            class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-neutral-100 truncate"
+                            class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-neutral-100 truncate px-3 py-2"
                         >
                             {title || $settings?.title || "Changelog"}
                         </h1>
                     </a>
                 {:else}
                     <div
-                        class="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1"
+                        class="flex items-center space-x-1 min-w-0 flex-1 py-2"
                     >
                         {#if $settings?.logo_url}
-                            <img
-                                src={getCompleteImageUrl($settings.logo_url)}
-                                alt="Logo"
-                                class="h-8 max-h-8 w-auto object-contain dark:hidden"
-                            />
-                            {#if $settings?.dark_logo_url}
-                                <img
-                                    src={getCompleteImageUrl(
-                                        $settings.dark_logo_url,
-                                    )}
-                                    alt="Logo"
-                                    class="h-8 max-h-8 w-auto object-contain hidden dark:block"
-                                />
-                            {:else}
+                            <div class="py-2">
                                 <img
                                     src={getCompleteImageUrl(
                                         $settings.logo_url,
                                     )}
                                     alt="Logo"
-                                    class="h-8 max-h-8 w-auto object-contain hidden dark:block"
+                                    class="h-12 max-h-12 w-auto object-contain dark:hidden"
                                 />
+                            </div>
+                            {#if $settings?.dark_logo_url}
+                                <div class="py-2">
+                                    <img
+                                        src={getCompleteImageUrl(
+                                            $settings.dark_logo_url,
+                                        )}
+                                        alt="Logo"
+                                        class="h-12 max-h-12 w-auto object-contain hidden dark:block"
+                                    />
+                                </div>
+                            {:else}
+                                <div class="py-2">
+                                    <img
+                                        src={getCompleteImageUrl(
+                                            $settings.logo_url,
+                                        )}
+                                        alt="Logo"
+                                        class="h-12 max-h-12 w-auto object-contain hidden dark:block"
+                                    />
+                                </div>
                             {/if}
+                        {:else}
+                            <!-- When no logo is present, add padding for better spacing -->
+                            <div class="py-2 px-3"></div>
                         {/if}
                         <h1
-                            class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-neutral-100 truncate"
+                            class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-neutral-100 truncate px-3 py-2"
                         >
                             {title || $settings?.title || "Changelog"}
                         </h1>
