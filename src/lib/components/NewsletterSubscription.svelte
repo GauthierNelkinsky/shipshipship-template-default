@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Mail, Send, Check, X } from "lucide-svelte";
     import { Button, Input } from "$lib/components/ui";
+    import { api } from "$lib/api";
 
     export let variant: "sidebar" | "inline" = "sidebar";
 
@@ -21,32 +22,20 @@
         alreadySubscribed = false;
 
         try {
-            const response = await fetch("/api/newsletter/subscribe", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email }),
-            });
+            const data = await api.subscribeToNewsletter(email);
 
-            const data = await response.json();
-
-            if (response.ok) {
-                if (data.already_subscribed) {
-                    alreadySubscribed = true;
-                    email = "";
-                    setTimeout(() => {
-                        alreadySubscribed = false;
-                    }, 3000);
-                } else {
-                    success = true;
-                    email = "";
-                    setTimeout(() => {
-                        success = false;
-                    }, 3000);
-                }
+            if (data.already_subscribed) {
+                alreadySubscribed = true;
+                email = "";
+                setTimeout(() => {
+                    alreadySubscribed = false;
+                }, 3000);
             } else {
-                error = data.error || "Failed to subscribe to newsletter";
+                success = true;
+                email = "";
+                setTimeout(() => {
+                    success = false;
+                }, 3000);
             }
         } catch (err) {
             error = "Network error. Please try again.";

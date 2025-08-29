@@ -12,17 +12,9 @@
     import { settings } from "$lib/stores/settings";
 
     import type { ParsedEvent } from "$lib/types";
-    import {
-        Calendar,
-        Tag,
-        Send,
-        ThumbsUp,
-        MessageSquare,
-        Mail,
-        Vote,
-    } from "lucide-svelte";
+    import { Send, ThumbsUp, MessageSquare, Vote } from "lucide-svelte";
     import { Button, Card, Badge, Input, Textarea } from "$lib/components/ui";
-    import ThemeSelector from "$lib/components/ThemeSelector.svelte";
+    import Header from "$lib/components/Header.svelte";
     import NewsletterSubscription from "$lib/components/NewsletterSubscription.svelte";
     import Footer from "$lib/components/Footer.svelte";
 
@@ -278,82 +270,7 @@
     class="min-h-screen bg-white dark:bg-neutral-950 text-gray-900 dark:text-neutral-100"
 >
     <!-- Header -->
-    <header
-        class="border-b border-gray-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-sm sticky top-0 z-40"
-    >
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16 min-w-0">
-                <!-- Logo/Title -->
-                {#if $settings?.website_url}
-                    <a
-                        href={$settings.website_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity min-w-0 flex-1"
-                    >
-                        {#if $settings?.logo_url}
-                            <img
-                                src={$settings.logo_url}
-                                alt="Logo"
-                                class="h-8 w-8 object-contain dark:hidden"
-                            />
-                            {#if $settings?.dark_logo_url}
-                                <img
-                                    src={$settings.dark_logo_url}
-                                    alt="Logo"
-                                    class="h-8 w-8 object-contain hidden dark:block"
-                                />
-                            {:else}
-                                <img
-                                    src={$settings.logo_url}
-                                    alt="Logo"
-                                    class="h-8 w-8 object-contain hidden dark:block"
-                                />
-                            {/if}
-                        {/if}
-                        <h1
-                            class="text-lg sm:text-xl font-semibold text-foreground truncate"
-                        >
-                            {$settings?.title || "Changelog"}
-                        </h1>
-                    </a>
-                {:else}
-                    <div
-                        class="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1"
-                    >
-                        {#if $settings?.logo_url}
-                            <img
-                                src={$settings.logo_url}
-                                alt="Logo"
-                                class="h-8 w-8 object-contain dark:hidden"
-                            />
-                            {#if $settings?.dark_logo_url}
-                                <img
-                                    src={$settings.dark_logo_url}
-                                    alt="Logo"
-                                    class="h-8 w-8 object-contain hidden dark:block"
-                                />
-                            {:else}
-                                <img
-                                    src={$settings.logo_url}
-                                    alt="Logo"
-                                    class="h-8 w-8 object-contain hidden dark:block"
-                                />
-                            {/if}
-                        {/if}
-                        <h1
-                            class="text-lg sm:text-xl font-semibold text-foreground truncate"
-                        >
-                            {$settings?.title || "Changelog"}
-                        </h1>
-                    </div>
-                {/if}
-
-                <!-- Theme Toggle -->
-                <ThemeSelector />
-            </div>
-        </div>
-    </header>
+    <Header />
 
     {#if loading}
         <div class="flex items-center justify-center min-h-[50vh]">

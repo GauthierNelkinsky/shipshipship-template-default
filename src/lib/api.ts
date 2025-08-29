@@ -83,13 +83,14 @@ class ApiClient {
 
   // Newsletter endpoints
   async subscribeToNewsletter(email: string) {
-    return this.request<{ message: string; email: string }>(
-      "/newsletter/subscribe",
-      {
-        method: "POST",
-        body: JSON.stringify({ email }),
-      },
-    );
+    return this.request<{
+      message: string;
+      email: string;
+      already_subscribed?: boolean;
+    }>("/newsletter/subscribe", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
   }
 
   async unsubscribeFromNewsletter(email: string) {

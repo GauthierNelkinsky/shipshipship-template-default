@@ -14,7 +14,7 @@
     } from "lucide-svelte";
     import { goto } from "$app/navigation";
     import { settings } from "$lib/stores/settings";
-    import ThemeSelector from "$lib/components/ThemeSelector.svelte";
+    import Header from "$lib/components/Header.svelte";
     import Footer from "$lib/components/Footer.svelte";
     import type { PageData } from "./$types";
     import type { Tag } from "$lib/types";
@@ -143,94 +143,7 @@
 
 <div class="min-h-screen bg-background">
     <!-- Header -->
-    <header
-        class="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40"
-    >
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16 min-w-0">
-                <!-- Back Button + Logo/Title -->
-                <div
-                    class="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1"
-                >
-                    <button
-                        on:click={() => goto("/")}
-                        class="flex items-center justify-center w-8 h-8 rounded-md hover:bg-accent/50 transition-colors flex-shrink-0"
-                        title="Back to changelog"
-                    >
-                        <ArrowLeft class="h-4 w-4" />
-                    </button>
-
-                    {#if $settings?.website_url}
-                        <a
-                            href={$settings.website_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity min-w-0"
-                        >
-                            {#if $settings?.logo_url}
-                                <img
-                                    src={$settings.logo_url}
-                                    alt="Logo"
-                                    class="h-8 w-8 object-contain dark:hidden"
-                                />
-                                {#if $settings?.dark_logo_url}
-                                    <img
-                                        src={$settings.dark_logo_url}
-                                        alt="Logo"
-                                        class="h-8 w-8 object-contain hidden dark:block"
-                                    />
-                                {:else}
-                                    <img
-                                        src={$settings.logo_url}
-                                        alt="Logo"
-                                        class="h-8 w-8 object-contain hidden dark:block"
-                                    />
-                                {/if}
-                            {/if}
-                            <h1
-                                class="text-lg sm:text-xl font-semibold text-foreground truncate"
-                            >
-                                {$settings?.title || "Changelog"}
-                            </h1>
-                        </a>
-                    {:else}
-                        <div
-                            class="flex items-center space-x-2 sm:space-x-3 min-w-0"
-                        >
-                            {#if $settings?.logo_url}
-                                <img
-                                    src={$settings.logo_url}
-                                    alt="Logo"
-                                    class="h-8 w-8 object-contain dark:hidden"
-                                />
-                                {#if $settings?.dark_logo_url}
-                                    <img
-                                        src={$settings.dark_logo_url}
-                                        alt="Logo"
-                                        class="h-8 w-8 object-contain hidden dark:block"
-                                    />
-                                {:else}
-                                    <img
-                                        src={$settings.logo_url}
-                                        alt="Logo"
-                                        class="h-8 w-8 object-contain hidden dark:block"
-                                    />
-                                {/if}
-                            {/if}
-                            <h1
-                                class="text-lg sm:text-xl font-semibold text-foreground truncate"
-                            >
-                                {$settings?.title || "Changelog"}
-                            </h1>
-                        </div>
-                    {/if}
-                </div>
-
-                <!-- Theme Toggle -->
-                <ThemeSelector />
-            </div>
-        </div>
-    </header>
+    <Header showBackButton={true} />
 
     <!-- Main Content -->
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">

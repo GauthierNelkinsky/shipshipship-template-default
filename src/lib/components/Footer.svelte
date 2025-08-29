@@ -14,16 +14,11 @@
     async function loadFooterLinks() {
         try {
             loading = true;
-            const response = await fetch("/api/footer-links/by-column");
-            if (response.ok) {
-                const data = await response.json();
-                // Flatten the response into a single array for easier filtering
-                footerLinks = Object.values(
-                    data.links || {},
-                ).flat() as FooterLink[];
-            } else {
-                console.error("Failed to fetch footer links:", response.status);
-            }
+            const data = await api.getFooterLinksByColumn();
+            // Flatten the response into a single array for easier filtering
+            footerLinks = Object.values(
+                data.links || {},
+            ).flat() as FooterLink[];
         } catch (err) {
             console.error("Failed to load footer links:", err);
         } finally {
