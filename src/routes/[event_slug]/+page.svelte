@@ -6,13 +6,10 @@
     import {
         ArrowLeft,
         Calendar,
-        Heart,
         Eye,
         ExternalLink,
-        Share2,
         Clock,
         Star,
-        Users,
         TrendingUp,
     } from "lucide-svelte";
     import { goto } from "$app/navigation";
@@ -41,24 +38,6 @@
             voteStatus = status;
         } catch (err) {
             console.error("Failed to load vote status:", err);
-        }
-    }
-
-    async function handleVote() {
-        if (voting || voteStatus.voted) return;
-
-        voting = true;
-        error = "";
-        success = "";
-
-        try {
-            const result = await api.voteEvent(event.id);
-            voteStatus = { voted: true, votes: result.votes };
-            success = "Thank you for your vote!";
-        } catch (err) {
-            error = err instanceof Error ? err.message : "Failed to vote";
-        } finally {
-            voting = false;
         }
     }
 
@@ -290,7 +269,8 @@
                     <Badge
                         class="{getStatusColor(
                             event.status,
-                        )} flex items-center gap-1.5 text-xs font-medium"
+                        )} flex items-center gap-1.5 text-xs font-medium hover:opacity-80"
+                        variant="custom"
                     >
                         <StatusIcon class="h-3.5 w-3.5" />
                         {event.status}
@@ -307,8 +287,8 @@
                     <div class="flex items-center gap-2">
                         {#if event.status === "Upcoming"}
                             <Badge
-                                variant="outline"
-                                class="bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800 text-xs font-medium"
+                                variant="custom"
+                                class="bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800 text-xs font-medium hover:opacity-80"
                             >
                                 Estimated
                             </Badge>
@@ -328,8 +308,8 @@
                 {#if event.tags && Array.isArray(event.tags) && event.tags.length > 0}
                     {#each event.tags as tag}
                         <Badge
-                            variant="outline"
-                            class="text-xs font-medium"
+                            variant="custom"
+                            class="text-xs font-medium hover:opacity-80"
                             style="background-color: {tag.color}20; color: {tag.color}; border-color: {tag.color}40"
                         >
                             {tag.name}
