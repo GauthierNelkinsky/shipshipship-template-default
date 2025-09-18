@@ -1,4 +1,4 @@
-# ShipShipShip Template - Prism
+# ShipShipShip Template - Default
 
 A beautiful changelog template for ShipShipShip, displaying your product updates like light through a prism.
 
@@ -109,7 +109,7 @@ You can customize colors, fonts, and layout by editing the Tailwind configuratio
 The template makes relative API calls to your Go backend:
 
 - `GET /api/events` - Public changelog viewing
-- `POST /api/events/{id}/vote` - Event voting  
+- `POST /api/events/{id}/vote` - Event voting
 - `POST /api/newsletter/subscribe` - Newsletter subscriptions
 - `POST /api/feedback` - Feedback submission
 - `GET /api/tags` - Tag filtering
@@ -126,4 +126,3 @@ The template makes relative API calls to your Go backend:
 ## License
 
 This template is part of the ShipShipShip project.
-
