@@ -1,6 +1,6 @@
 # ShipShipShip Template - Default
 
-A beautiful changelog template for ShipShipShip, displaying your product updates like light through a prism.
+A beautiful changelog template for ShipShipShip, displaying your product updates.
 
 ## Features
 
