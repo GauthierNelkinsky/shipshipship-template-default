@@ -167,7 +167,7 @@
         <article class="text-center space-y-8">
             <!-- Title -->
             <h1
-                class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
+                class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground break-words"
             >
                 {event.title}
             </h1>

@@ -909,7 +909,7 @@
                                     <div class="group">
                                         <div class="mb-1.5">
                                             <h4
-                                                class="font-semibold text-foreground text-sm leading-tight mb-1.5 cursor-pointer hover:text-primary transition-colors"
+                                                class="font-semibold text-foreground text-sm leading-tight mb-1.5 cursor-pointer hover:text-primary transition-colors break-words"
                                                 on:click={() =>
                                                     goto(`/${event.slug}`)}
                                             >
