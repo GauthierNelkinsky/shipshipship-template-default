@@ -391,7 +391,7 @@
                                             <!-- Event Title -->
                                             <div class="mb-2 sm:mb-3">
                                                 <h1
-                                                    class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-neutral-100 leading-tight cursor-pointer hover:text-primary transition-colors"
+                                                    class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-neutral-100 leading-tight cursor-pointer hover:text-primary transition-colors break-words"
                                                     on:click={() =>
                                                         goto(`/${event.slug}`)}
                                                 >
@@ -616,7 +616,7 @@
                                             <!-- Event Title -->
                                             <div class="mb-2 sm:mb-3">
                                                 <h1
-                                                    class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-neutral-100 leading-tight cursor-pointer hover:text-primary transition-colors"
+                                                    class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-neutral-100 leading-tight cursor-pointer hover:text-primary transition-colors break-words"
                                                     on:click={() =>
                                                         goto(`/${event.slug}`)}
                                                 >
