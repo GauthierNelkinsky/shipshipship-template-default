@@ -46,6 +46,15 @@ class ApiClient {
     return this.request<Event[]>("/events");
   }
 
+  async getEventsByCategory() {
+    return this.request<{
+      success: boolean;
+      theme_id: string;
+      theme_name: string;
+      categories: { [categoryId: string]: Event[] };
+    }>("/events/by-category");
+  }
+
   async getEvent(id: number) {
     return this.request<Event>(`/events/${id}`);
   }
