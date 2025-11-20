@@ -1,0 +1,135 @@
+name: Build and Upload Theme to PocketBase (Staging)
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+
+jobs:
+  build-and-upload-staging:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Clean install dependencies
+        run: |
+          rm -rf package-lock.json node_modules
+          npm install
+
+      - name: Build theme
+        run: npm run build
+
+      - name: Create theme manifest
+        run: |
+          echo '{
+            "name": "${{ github.event.repository.name }}",
+            "version": "dev-${{ github.sha }}",
+            "built_with": "SvelteKit",
+            "build_date": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'",
+            "api_compatibility": "v1",
+            "commit_sha": "${{ github.sha }}",
+            "repository": "${{ github.repository }}",
+            "branch": "dev"
+          }' > build/theme-manifest.json
+
+      - name: Create theme package
+        run: |
+          cd build
+          zip -r "../${{ github.event.repository.name }}-dev-${{ github.sha }}.zip" .
+          cd ..
+          echo "ZIP_FILE=${{ github.event.repository.name }}-dev-${{ github.sha }}.zip" >> $GITHUB_ENV
+
+      - name: Extract theme info from package.json
+        id: theme_info
+        run: |
+          DISPLAY_NAME=$(node -p "require('./package.json').displayName || require('./package.json').name || '${{ github.event.repository.name }}'" 2>/dev/null || echo "${{ github.event.repository.name }}")
+          DESCRIPTION=$(node -p "require('./package.json').description || ''" 2>/dev/null || echo "")
+          DEMO_URL=$(node -p "require('./package.json').shipshipship?.demoUrl || ''" 2>/dev/null || echo "")
+          FEATURES=$(node -p "JSON.stringify(require('./package.json').shipshipship?.features || [])" 2>/dev/null || echo "[]")
+
+          DEMO_URL="${{ vars.DEMO_URL || secrets.DEMO_URL || '$DEMO_URL' }}"
+
+          echo "display_name=$DISPLAY_NAME [STAGING]" >> $GITHUB_OUTPUT
+          echo "description=$DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "demo_url=$DEMO_URL" >> $GITHUB_OUTPUT
+          echo "features=$FEATURES" >> $GITHUB_OUTPUT
+
+          echo "✅ Extracted theme info:"
+          echo "  Display Name: $DISPLAY_NAME [STAGING]"
+          echo "  Description: $DESCRIPTION"
+          echo "  Demo URL: $DEMO_URL"
+          echo "  Features: $FEATURES"
+
+      - name: Upload theme to PocketBase (Staging)
+        env:
+          POCKETBASE_URL: ${{ secrets.POCKETBASE_URL }}
+          POCKETBASE_EMAIL: ${{ secrets.POCKETBASE_EMAIL }}
+          POCKETBASE_PASSWORD: ${{ secrets.POCKETBASE_PASSWORD }}
+        run: |
+          AUTH_RESPONSE=$(curl -s -X POST "$POCKETBASE_URL/api/collections/users/auth-with-password" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "identity": "'$POCKETBASE_EMAIL'",
+              "password": "'$POCKETBASE_PASSWORD'"
+            }')
+
+          TOKEN=$(echo $AUTH_RESPONSE | jq -r '.token')
+          USER_ID=$(echo $AUTH_RESPONSE | jq -r '.record.id')
+
+          if [ "$TOKEN" = "null" ] || [ -z "$TOKEN" ]; then
+            echo "❌ Authentication failed"
+            echo "Response: $AUTH_RESPONSE"
+            exit 1
+          fi
+
+          echo "✅ Authenticated successfully"
+
+          FEATURES_JSON='${{ steps.theme_info.outputs.features }}'
+          TECHNOLOGIES_JSON='["SvelteKit", "TypeScript", "Tailwind CSS"]'
+          METADATA_JSON='{"build_date":"'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'","commit_sha":"${{ github.sha }}","repository":"${{ github.repository }}","branch":"dev"}'
+
+          echo "🔍 Debug JSON data:"
+          echo "  Features: $FEATURES_JSON"
+          echo "  Technologies: $TECHNOLOGIES_JSON"
+          echo "  Metadata: $METADATA_JSON"
+
+          echo "🆕 Creating new staging theme entry"
+          RESPONSE=$(curl -s -X POST "$POCKETBASE_URL/api/collections/themes/records" \
+            -H "Authorization: Bearer $TOKEN" \
+            -F "owner=$USER_ID" \
+            -F "name=${{ github.event.repository.name }}-staging-$(date +%s)" \
+            -F "display_name=${{ steps.theme_info.outputs.display_name }}" \
+            -F "description=${{ steps.theme_info.outputs.description }}" \
+            -F "version=dev-${{ github.sha }}" \
+            -F "demo_url=${{ steps.theme_info.outputs.demo_url }}" \
+            -F "build_file=@$ZIP_FILE" \
+            -F "features=$FEATURES_JSON" \
+            -F "technologies=$TECHNOLOGIES_JSON" \
+            -F "metadata=$METADATA_JSON" \
+            -F "submission_status=staging")
+
+          echo "📥 Create response:"
+          echo "$RESPONSE" | jq .
+
+          if echo "$RESPONSE" | jq -e '.id' > /dev/null; then
+            THEME_ID=$(echo "$RESPONSE" | jq -r '.id')
+            echo "✅ Staging theme uploaded successfully!"
+            echo "🆔 Theme ID: $THEME_ID"
+            echo "📦 Package: $ZIP_FILE"
+            echo "🔗 Demo: ${{ steps.theme_info.outputs.demo_url }}"
+            echo "🏷️  Status: STAGING"
+            echo "✨ Features: $FEATURES_JSON"
+          else
+            echo "❌ Upload failed"
+            echo "📥 Full response:"
+            echo "$RESPONSE"
+            exit 1
+          fi

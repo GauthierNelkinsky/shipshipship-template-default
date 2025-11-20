@@ -1,0 +1,33 @@
+{
+  "id": "shipshipship-template-default",
+  "name": "Default Changelog",
+  "version": "1.0.0",
+  "description": "A modern changelog and roadmap theme with voting features",
+  "author": "ShipShipShip",
+  "categories": [
+    {
+      "id": "upcoming",
+      "label": "Upcoming",
+      "description": "Events currently in development. These will be displayed in the 'In Progress' section.",
+      "order": 1
+    },
+    {
+      "id": "released",
+      "label": "Released",
+      "description": "Events that have been completed and published. These appear in the main changelog timeline.",
+      "order": 2
+    },
+    {
+      "id": "proposed",
+      "label": "Proposed",
+      "description": "Events here will be displayed in the vote card where users can vote on upcoming features.",
+      "order": 3
+    },
+    {
+      "id": "feedback",
+      "label": "Feedback",
+      "description": "User feedback and suggestions. This is the status where submitted feedback is added.",
+      "order": 4
+    }
+  ]
+}
