@@ -57,7 +57,7 @@
     let voteErrors: Record<number, string> = {};
 
     // Newsletter settings
-    let newsletterEnabled = false;
+    let newsletterEnabled = true;
 
     onMount(async () => {
         // Load rate limiting data from localStorage
@@ -86,10 +86,31 @@
 
     async function loadNewsletterSettings() {
         try {
-            const settings = await api.getSettings();
-            newsletterEnabled = !!settings?.newsletter_enabled;
+            const settingsData = await api.getThemeSettings();
+
+            if (settingsData.settings) {
+                // Check if settings is an object or array
+                if (Array.isArray(settingsData.settings)) {
+                    const newsletterSetting = settingsData.settings.find(
+                        (s) => s.id === "display-newsletter",
+                    );
+                    if (newsletterSetting !== undefined) {
+                        newsletterEnabled = newsletterSetting.value;
+                    }
+                } else if (typeof settingsData.settings === "object") {
+                    // Settings might be an object with setting IDs as keys
+                    if (
+                        settingsData.settings["display-newsletter"] !==
+                        undefined
+                    ) {
+                        newsletterEnabled =
+                            settingsData.settings["display-newsletter"];
+                    }
+                }
+            }
         } catch (err) {
-            newsletterEnabled = false;
+            // If loading settings fails, use default value (true)
+            newsletterEnabled = true;
         }
     }
 

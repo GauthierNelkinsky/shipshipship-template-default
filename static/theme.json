@@ -10,6 +10,15 @@
   "compatibility": {
     "minVersion": "1.2.2"
   },
+  "settings": [
+    {
+      "id": "display-newsletter",
+      "label": "Display Newsletter",
+      "description": "Show newsletter subscription form on the public page",
+      "type": "boolean",
+      "default": true
+    }
+  ],
   "categories": [
     {
       "id": "upcoming",

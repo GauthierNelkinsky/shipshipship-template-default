@@ -137,6 +137,10 @@ class ApiClient {
     return this.request<ProjectSettings>("/settings");
   }
 
+  async getThemeSettings() {
+    return this.request<{ settings: any }>("/settings/theme");
+  }
+
   // Newsletter endpoints
   async subscribeToNewsletter(email: string) {
     return this.request<{
