@@ -78,6 +78,53 @@ class ApiClient {
     );
   }
 
+  // New reaction endpoints
+  async getReactionTypes() {
+    return this.request<{
+      reactions: Array<{ type: string; emoji: string; label: string }>;
+    }>("/reactions/types");
+  }
+
+  async addOrRemoveReaction(eventId: number, reactionType: string) {
+    return this.request<{
+      message: string;
+      added?: boolean;
+      removed?: boolean;
+      reaction: string;
+      summary: {
+        event_id: number;
+        total_count: number;
+        reactions: Array<{ reaction_type: string; count: number }>;
+        user_reactions: string[];
+      };
+    }>(`/events/${eventId}/reactions`, {
+      method: "POST",
+      body: JSON.stringify({ reaction_type: reactionType }),
+    });
+  }
+
+  async getEventReactions(eventId: number) {
+    return this.request<{
+      event_id: number;
+      total_count: number;
+      reactions: Array<{ reaction_type: string; count: number }>;
+      user_reactions: string[];
+    }>(`/events/${eventId}/reactions`);
+  }
+
+  async getMyReactions(eventId: number) {
+    return this.request<{
+      event_id: number;
+      reactions: string[];
+    }>(`/events/${eventId}/reactions/me`);
+  }
+
+  async getAllReactionCounts() {
+    return this.request<{ [eventId: string]: number }>(
+      "/events/reactions/counts",
+    );
+  }
+
   async submitFeedback(title: string, content: string, formStartTime: number) {
     return this.request<{ message: string; id: number }>("/feedback", {
       method: "POST",

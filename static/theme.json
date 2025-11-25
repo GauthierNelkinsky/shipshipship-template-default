@@ -2,8 +2,14 @@
   "id": "shipshipship-template-default",
   "name": "Default Changelog",
   "version": "1.0.0",
-  "description": "A modern changelog and roadmap theme with voting features",
+  "description": "A beautiful changelog template for ShipShipShip",
   "author": "ShipShipShip",
+  "demoUrl": "https://prism-demo.yoursite.com",
+  "features": ["Responsive", "Dark-mode", "Seo-optimized", "Modern UI"],
+  "technologies": ["SvelteKit", "TypeScript", "Tailwind CSS"],
+  "compatibility": {
+    "minVersion": "1.2.2"
+  },
   "categories": [
     {
       "id": "upcoming",

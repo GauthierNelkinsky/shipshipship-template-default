@@ -5,6 +5,28 @@ export type EventStatus =
   | "Release"
   | "Archived";
 
+export type ReactionType =
+  | "thumbs_up"
+  | "heart"
+  | "fire"
+  | "party"
+  | "eyes"
+  | "lightbulb"
+  | "thinking"
+  | "thumbs_down";
+
+export interface ReactionCount {
+  reaction_type: ReactionType;
+  count: number;
+}
+
+export interface ReactionSummary {
+  event_id: number;
+  total_count: number;
+  reactions: ReactionCount[];
+  user_reactions: ReactionType[];
+}
+
 export interface Tag {
   id: number;
   name: string;
@@ -35,6 +57,7 @@ export interface Event {
   is_public: boolean; // Controls if event appears on public page
   has_public_url: boolean; // Controls if event has individual public URL
   slug: string;
+  reaction_summary?: ReactionSummary; // Included when fetched from API
 }
 
 export interface CreateEventRequest {

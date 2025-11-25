@@ -17,6 +17,7 @@
     import Header from "$lib/components/Header.svelte";
     import NewsletterSubscription from "$lib/components/NewsletterSubscription.svelte";
     import Footer from "$lib/components/Footer.svelte";
+    import ReactionPicker from "$lib/components/ReactionPicker.svelte";
 
     let events: ParsedEvent[] = [];
     let loading = true;
@@ -92,20 +93,54 @@
         }
     }
 
-    async function loadVoteStatuses() {
-        // Check vote status for all proposed events
-        const proposedEvents = groupedEvents.proposed || [];
-        for (const event of proposedEvents) {
+    async function loadReactionsForAllEvents() {
+        // Fetch reaction data for all events (upcoming, released, and proposed)
+        const allEventsList = [
+            ...(groupedEvents.upcoming || []),
+            ...(groupedEvents.release || []),
+            ...(groupedEvents.proposed || []),
+        ];
+
+        for (const event of allEventsList) {
             try {
-                const status = await api.checkVoteStatus(event.id);
-                if (status.voted) {
+                const reactionData = await api.getEventReactions(event.id);
+
+                // Update the event with reaction data
+                event.reaction_summary = reactionData;
+
+                // Get thumbs_up count (handle null reactions array)
+                const thumbsUpReaction = reactionData.reactions?.find(
+                    (r: any) => r.reaction_type === "thumbs_up",
+                );
+                event.votes = thumbsUpReaction?.count || 0;
+
+                // Check if user has voted
+                if (reactionData.user_reactions?.includes("thumbs_up")) {
                     votedEvents.add(event.id);
                 }
             } catch (err) {
-                console.error("Failed to check vote status:", err);
+                console.error(
+                    `Failed to load reactions for event ${event.id}:`,
+                    err,
+                );
             }
         }
+
         votedEvents = new Set(votedEvents); // Trigger reactivity
+
+        // Trigger reactivity for all event arrays
+        groupedEvents.upcoming = [...groupedEvents.upcoming];
+        groupedEvents.release = [...groupedEvents.release];
+        groupedEvents.proposed = [...groupedEvents.proposed];
+
+        categorizedEvents.upcoming = [...categorizedEvents.upcoming];
+        categorizedEvents.released = [...categorizedEvents.released];
+        categorizedEvents.proposed = [...categorizedEvents.proposed];
+    }
+
+    async function loadVoteStatuses() {
+        // Load reactions for all events
+        await loadReactionsForAllEvents();
     }
 
     async function loadEvents() {
@@ -113,18 +148,34 @@
             loading = true;
             const data = await api.getEventsByCategory();
 
+            // Helper function to set vote count from thumbs_up reactions
+            const setVoteCount = (event: any) => {
+                if (event.reaction_summary) {
+                    const thumbsUpReaction =
+                        event.reaction_summary.reactions.find(
+                            (r: any) => r.reaction_type === "thumbs_up",
+                        );
+                    event.votes = thumbsUpReaction?.count || 0;
+                }
+                return event;
+            };
+
             // Parse events from each category, filtering out empty/undefined
             categorizedEvents.upcoming = (data.categories.upcoming || [])
                 .filter((e) => e && e.id)
+                .map((e) => setVoteCount(e))
                 .map(parseEvent);
             categorizedEvents.released = (data.categories.released || [])
                 .filter((e) => e && e.id)
+                .map((e) => setVoteCount(e))
                 .map(parseEvent);
             categorizedEvents.proposed = (data.categories.proposed || [])
                 .filter((e) => e && e.id)
+                .map((e) => setVoteCount(e))
                 .map(parseEvent);
             categorizedEvents.feedback = (data.categories.feedback || [])
                 .filter((e) => e && e.id)
+                .map((e) => setVoteCount(e))
                 .map(parseEvent);
 
             // Map to old structure for template compatibility
@@ -152,19 +203,35 @@
 
     async function handleVote(eventId: number) {
         try {
-            const result = await api.voteEvent(eventId);
-            // Update the event in our local state
-            events = events.map((event) =>
-                event.id === eventId
-                    ? { ...event, votes: result.votes }
-                    : event,
-            );
-            groupedEvents = groupEventsByStatus(events);
+            // Add or remove thumbs_up reaction
+            const result = await api.addOrRemoveReaction(eventId, "thumbs_up");
 
-            // Update vote status
-            if (result.voted) {
+            // Get thumbs_up count specifically (handle null reactions array)
+            const thumbsUpReaction = result.summary.reactions?.find(
+                (r) => r.reaction_type === "thumbs_up",
+            );
+            const thumbsUpCount = thumbsUpReaction?.count || 0;
+
+            // Find and update the event object in place (maintain object reference)
+            const updateEventInPlace = (eventsList: ParsedEvent[]) => {
+                const event = eventsList.find((e) => e.id === eventId);
+                if (event) {
+                    event.votes = thumbsUpCount;
+                    event.reaction_summary = result.summary;
+                }
+            };
+
+            // Update event in all arrays (in place to maintain reactivity)
+            updateEventInPlace(categorizedEvents.upcoming);
+            updateEventInPlace(categorizedEvents.released);
+            updateEventInPlace(categorizedEvents.proposed);
+            updateEventInPlace(categorizedEvents.feedback);
+            updateEventInPlace(events);
+
+            // Update vote status based on whether reaction was added or removed
+            if (result.added) {
                 votedEvents.add(eventId);
-            } else {
+            } else if (result.removed) {
                 votedEvents.delete(eventId);
             }
             votedEvents = new Set(votedEvents); // Trigger reactivity
@@ -463,6 +530,18 @@
                                                     {/each}
                                                 </div>
                                             {/if}
+
+                                            <!-- Reactions -->
+                                            <div
+                                                class="mt-4 pt-4 border-t border-gray-200 dark:border-neutral-800"
+                                            >
+                                                <ReactionPicker
+                                                    eventId={event.id}
+                                                    variant="popover"
+                                                    size="sm"
+                                                    initialReactions={event.reaction_summary}
+                                                />
+                                            </div>
                                         </div>
                                     </article>
                                 {/each}
@@ -688,6 +767,18 @@
                                                     {/each}
                                                 </div>
                                             {/if}
+
+                                            <!-- Reactions -->
+                                            <div
+                                                class="mt-4 pt-4 border-t border-gray-200 dark:border-neutral-800"
+                                            >
+                                                <ReactionPicker
+                                                    eventId={event.id}
+                                                    variant="popover"
+                                                    size="sm"
+                                                    initialReactions={event.reaction_summary}
+                                                />
+                                            </div>
                                         </div>
                                     </article>
 
@@ -840,90 +931,89 @@
                     class="w-full lg:w-[250px] lg:flex-shrink-0 space-y-4 lg:space-y-5 order-first lg:order-last"
                 >
                     <!-- Feedback Card -->
-                        <div
-                            class="bg-gray-50 dark:bg-neutral-800/50 rounded-lg p-4"
+                    <div
+                        class="bg-gray-50 dark:bg-neutral-800/50 rounded-lg p-4"
+                    >
+                        <h3
+                            class="text-lg font-semibold mb-3 text-gray-900 dark:text-neutral-100 flex items-center gap-2"
                         >
-                            <h3
-                                class="text-lg font-semibold mb-3 text-gray-900 dark:text-neutral-100 flex items-center gap-2"
+                            <MessageSquare class="h-5 w-5 text-primary" />
+                            Share Your Ideas
+                        </h3>
+
+                        {#if feedbackSuccess}
+                            <div
+                                class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-3 py-2 rounded-lg text-sm mb-4"
                             >
-                                <MessageSquare class="h-5 w-5 text-primary" />
-                                Share Your Ideas
-                            </h3>
+                                Thanks for your feedback! We'll review it soon.
+                            </div>
+                        {/if}
 
-                            {#if feedbackSuccess}
-                                <div
-                                    class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-3 py-2 rounded-lg text-sm mb-4"
-                                >
-                                    Thanks for your feedback! We'll review it
-                                    soon.
-                                </div>
-                            {/if}
-
-                            {#if feedbackError}
-                                <div
-                                    class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 px-3 py-2 rounded-lg text-sm mb-4"
-                                >
-                                    {feedbackError}
-                                </div>
-                            {/if}
-
-                            <form
-                                on:submit|preventDefault={submitFeedback}
-                                class="space-y-3"
+                        {#if feedbackError}
+                            <div
+                                class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 px-3 py-2 rounded-lg text-sm mb-4"
                             >
-                                <div>
-                                    <label
-                                        for="feedback-title"
-                                        class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1.5"
-                                    >
-                                        Title
-                                    </label>
-                                    <input
-                                        id="feedback-title"
-                                        type="text"
-                                        bind:value={feedbackTitle}
-                                        placeholder="What's your idea?"
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 placeholder-gray-500 dark:placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary focus:border-transparent transition-colors text-sm"
-                                        disabled={submittingFeedback}
-                                    />
-                                </div>
+                                {feedbackError}
+                            </div>
+                        {/if}
 
-                                <div>
-                                    <label
-                                        for="feedback-description"
-                                        class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1.5"
-                                    >
-                                        Description
-                                    </label>
-                                    <textarea
-                                        id="feedback-description"
-                                        bind:value={feedbackDescription}
-                                        placeholder="Tell us more about your idea..."
-                                        rows="3"
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 placeholder-gray-500 dark:placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary focus:border-transparent resize-none transition-colors text-sm"
-                                        disabled={submittingFeedback}
-                                    ></textarea>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={submittingFeedback ||
-                                        !feedbackTitle.trim() ||
-                                        !feedbackDescription.trim()}
-                                    class="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground"
+                        <form
+                            on:submit|preventDefault={submitFeedback}
+                            class="space-y-3"
+                        >
+                            <div>
+                                <label
+                                    for="feedback-title"
+                                    class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1.5"
                                 >
-                                    {#if submittingFeedback}
-                                        <div
-                                            class="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white"
-                                        ></div>
-                                        Submitting...
-                                    {:else}
-                                        <Send class="h-3.5 w-3.5" />
-                                        Submit Idea
-                                    {/if}
-                                </button>
-                            </form>
-                        </div>
+                                    Title
+                                </label>
+                                <input
+                                    id="feedback-title"
+                                    type="text"
+                                    bind:value={feedbackTitle}
+                                    placeholder="What's your idea?"
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 placeholder-gray-500 dark:placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary focus:border-transparent transition-colors text-sm"
+                                    disabled={submittingFeedback}
+                                />
+                            </div>
+
+                            <div>
+                                <label
+                                    for="feedback-description"
+                                    class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1.5"
+                                >
+                                    Description
+                                </label>
+                                <textarea
+                                    id="feedback-description"
+                                    bind:value={feedbackDescription}
+                                    placeholder="Tell us more about your idea..."
+                                    rows="3"
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 placeholder-gray-500 dark:placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary focus:border-transparent resize-none transition-colors text-sm"
+                                    disabled={submittingFeedback}
+                                ></textarea>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={submittingFeedback ||
+                                    !feedbackTitle.trim() ||
+                                    !feedbackDescription.trim()}
+                                class="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground"
+                            >
+                                {#if submittingFeedback}
+                                    <div
+                                        class="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white"
+                                    ></div>
+                                    Submitting...
+                                {:else}
+                                    <Send class="h-3.5 w-3.5" />
+                                    Submit Idea
+                                {/if}
+                            </button>
+                        </form>
+                    </div>
 
                     <!-- Newsletter Section - Desktop/Sidebar -->
                     {#if newsletterEnabled}

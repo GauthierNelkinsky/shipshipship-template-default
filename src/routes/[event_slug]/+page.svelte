@@ -16,6 +16,7 @@
     import { settings } from "$lib/stores/settings";
     import Header from "$lib/components/Header.svelte";
     import Footer from "$lib/components/Footer.svelte";
+    import ReactionPicker from "$lib/components/ReactionPicker.svelte";
     import type { PageData } from "./$types";
     import type { Tag } from "$lib/types";
 
@@ -273,6 +274,18 @@
                     </div>
                 {/if}
             {/if}
+
+            <!-- Reactions Section -->
+            <div class="pt-8 border-t border-border">
+                <div class="flex flex-wrap items-center justify-center gap-1.5">
+                    <ReactionPicker
+                        eventId={event.id}
+                        variant="popover"
+                        size="sm"
+                        initialReactions={event.reaction_summary}
+                    />
+                </div>
+            </div>
         </article>
     </div>
 

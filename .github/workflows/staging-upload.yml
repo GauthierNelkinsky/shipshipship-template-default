@@ -47,13 +47,15 @@ jobs:
           cd ..
           echo "ZIP_FILE=${{ github.event.repository.name }}-dev-${{ github.sha }}.zip" >> $GITHUB_ENV
 
-      - name: Extract theme info from package.json
+      - name: Extract theme info from theme.json
         id: theme_info
         run: |
-          DISPLAY_NAME=$(node -p "require('./package.json').displayName || require('./package.json').name || '${{ github.event.repository.name }}'" 2>/dev/null || echo "${{ github.event.repository.name }}")
-          DESCRIPTION=$(node -p "require('./package.json').description || ''" 2>/dev/null || echo "")
-          DEMO_URL=$(node -p "require('./package.json').shipshipship?.demoUrl || ''" 2>/dev/null || echo "")
-          FEATURES=$(node -p "JSON.stringify(require('./package.json').shipshipship?.features || [])" 2>/dev/null || echo "[]")
+          DISPLAY_NAME=$(node -p "require('./static/theme.json').name || '${{ github.event.repository.name }}'" 2>/dev/null || echo "${{ github.event.repository.name }}")
+          DESCRIPTION=$(node -p "require('./static/theme.json').description || ''" 2>/dev/null || echo "")
+          DEMO_URL=$(node -p "require('./static/theme.json').demoUrl || ''" 2>/dev/null || echo "")
+          FEATURES=$(node -p "JSON.stringify(require('./static/theme.json').features || [])" 2>/dev/null || echo "[]")
+          TECHNOLOGIES=$(node -p "JSON.stringify(require('./static/theme.json').technologies || ['SvelteKit', 'TypeScript', 'Tailwind CSS'])" 2>/dev/null || echo '["SvelteKit", "TypeScript", "Tailwind CSS"]')
+          COMPATIBILITY=$(node -p "JSON.stringify(require('./static/theme.json').compatibility || {})" 2>/dev/null || echo "{}")
 
           DEMO_URL="${{ vars.DEMO_URL || secrets.DEMO_URL || '$DEMO_URL' }}"
 
@@ -61,12 +63,16 @@ jobs:
           echo "description=$DESCRIPTION" >> $GITHUB_OUTPUT
           echo "demo_url=$DEMO_URL" >> $GITHUB_OUTPUT
           echo "features=$FEATURES" >> $GITHUB_OUTPUT
+          echo "technologies=$TECHNOLOGIES" >> $GITHUB_OUTPUT
+          echo "compatibility=$COMPATIBILITY" >> $GITHUB_OUTPUT
 
           echo "✅ Extracted theme info:"
           echo "  Display Name: $DISPLAY_NAME [STAGING]"
           echo "  Description: $DESCRIPTION"
           echo "  Demo URL: $DEMO_URL"
           echo "  Features: $FEATURES"
+          echo "  Technologies: $TECHNOLOGIES"
+          echo "  Compatibility: $COMPATIBILITY"
 
       - name: Upload theme to PocketBase (Staging)
         env:
@@ -94,12 +100,14 @@ jobs:
           echo "🆔 User ID: $USER_ID"
 
           FEATURES_JSON='${{ steps.theme_info.outputs.features }}'
-          TECHNOLOGIES_JSON='["SvelteKit", "TypeScript", "Tailwind CSS"]'
+          TECHNOLOGIES_JSON='${{ steps.theme_info.outputs.technologies }}'
+          COMPATIBILITY_JSON='${{ steps.theme_info.outputs.compatibility }}'
           METADATA_JSON='{"build_date":"'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'","commit_sha":"${{ github.sha }}","repository":"${{ github.repository }}","branch":"dev"}'
 
           echo "🔍 Debug JSON data:"
           echo "  Features: $FEATURES_JSON"
           echo "  Technologies: $TECHNOLOGIES_JSON"
+          echo "  Compatibility: $COMPATIBILITY_JSON"
           echo "  Metadata: $METADATA_JSON"
 
           echo "🆕 Creating new staging theme entry"
@@ -114,6 +122,7 @@ jobs:
             -F "build_file=@$ZIP_FILE" \
             -F "features=$FEATURES_JSON" \
             -F "technologies=$TECHNOLOGIES_JSON" \
+            -F "compatibility=$COMPATIBILITY_JSON" \
             -F "metadata=$METADATA_JSON" \
             -F "submission_status=staging")
 
