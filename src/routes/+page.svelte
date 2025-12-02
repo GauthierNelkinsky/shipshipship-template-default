@@ -10,6 +10,7 @@
         markdownToHtml,
     } from "$lib/utils";
     import { settings } from "$lib/stores/settings";
+    import * as m from "$lib/paraglide/messages";
 
     import type { ParsedEvent } from "$lib/types";
     import { Send, ThumbsUp, MessageSquare, Vote } from "lucide-svelte";
@@ -263,7 +264,7 @@
         } catch (err) {
             console.error("Failed to vote:", err);
             const errorMessage =
-                err instanceof Error ? err.message : "Failed to vote";
+                err instanceof Error ? err.message : m.page_vote_error_failed();
             voteErrors[eventId] = errorMessage;
             voteErrors = { ...voteErrors };
 
@@ -286,8 +287,7 @@
         const minimumTime = 3000; // 3 seconds
 
         if (formDuration < minimumTime) {
-            feedbackError =
-                "Please take your time to fill out the form properly.";
+            feedbackError = m.page_feedback_error_time();
             return;
         }
 
@@ -297,7 +297,9 @@
             const remainingTime = Math.ceil(
                 (rateLimitWindow - (now - lastSubmissionTime)) / 1000,
             );
-            feedbackError = `Please wait ${remainingTime} seconds before submitting again.`;
+            feedbackError = m.page_feedback_error_rate_limit({
+                seconds: remainingTime.toString(),
+            });
             return;
         }
 
@@ -308,7 +310,9 @@
                 const remainingTime = Math.ceil(
                     (extendedLimit - (now - lastSubmissionTime)) / 1000,
                 );
-                feedbackError = `Too many submissions. Please wait ${Math.ceil(remainingTime / 60)} minutes.`;
+                feedbackError = m.page_feedback_error_rate_limit_extended({
+                    minutes: Math.ceil(remainingTime / 60).toString(),
+                });
                 return;
             }
         }
@@ -367,7 +371,7 @@
                 feedbackError = errorMessage;
                 formStartTime = Date.now(); // Reset form start time
             } else {
-                feedbackError = "Failed to submit feedback. Please try again.";
+                feedbackError = m.page_feedback_error_failed();
             }
         } finally {
             submittingFeedback = false;
@@ -387,8 +391,8 @@
 </script>
 
 <svelte:head>
-    <title>{$settings?.title || "Changelog"}</title>
-    <meta name="description" content="Product changelog and feature updates" />
+    <title>{$settings?.title || m.page_title()}</title>
+    <meta name="description" content={m.page_description()} />
 </svelte:head>
 
 <!-- Main Container -->
@@ -409,7 +413,7 @@
             <div
                 class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 px-4 py-3 rounded-lg"
             >
-                {error}
+                {error || m.page_error_loading()}
             </div>
         </div>
     {:else}
@@ -469,7 +473,7 @@
                                                                         class="relative inline-flex size-2 rounded-full bg-amber-500"
                                                                     ></span>
                                                                 </span>
-                                                                Estimated
+                                                                {m.page_estimated()}
                                                             </span>
                                                             <time
                                                                 class="text-sm font-medium text-gray-600 dark:text-neutral-400"
@@ -601,7 +605,7 @@
                                                     <Vote
                                                         class="h-5 w-5 text-primary"
                                                     />
-                                                    Feature Voting
+                                                    {m.page_feature_voting()}
                                                 </h3>
                                                 <div class="space-y-2.5">
                                                     {#each groupedEvents.proposed as proposedEvent}
@@ -655,8 +659,8 @@
                                                                 title={votedEvents.has(
                                                                     proposedEvent.id,
                                                                 )
-                                                                    ? "Click to remove your vote"
-                                                                    : "Click to vote for this feature"}
+                                                                    ? m.page_remove_vote_tooltip()
+                                                                    : m.page_vote_tooltip()}
                                                             >
                                                                 <ThumbsUp
                                                                     class="h-3.5 w-3.5"
@@ -664,8 +668,9 @@
                                                                 {votedEvents.has(
                                                                     proposedEvent.id,
                                                                 )
-                                                                    ? "Remove Vote"
-                                                                    : "Vote"} ({proposedEvent.votes})
+                                                                    ? m.page_remove_vote()
+                                                                    : m.page_vote()}
+                                                                ({proposedEvent.votes})
                                                             </button>
                                                         </div>
                                                         {#if proposedEvent !== groupedEvents.proposed[groupedEvents.proposed.length - 1]}
@@ -706,7 +711,7 @@
                                                                         class="relative inline-flex size-2 rounded-full bg-amber-500"
                                                                     ></span>
                                                                 </span>
-                                                                Estimated
+                                                                {m.page_estimated()}
                                                             </span>
                                                             <time
                                                                 class="text-sm font-medium text-gray-600 dark:text-neutral-400"
@@ -821,15 +826,13 @@
                                                 <h3
                                                     class="text-lg font-semibold mb-3 text-gray-900 dark:text-neutral-100"
                                                 >
-                                                    Share Your Ideas
+                                                    {m.page_share_ideas()}
                                                 </h3>
                                                 {#if feedbackSuccess}
                                                     <div
                                                         class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-3 py-2 rounded-lg text-sm mb-3"
                                                     >
-                                                        Thanks for your
-                                                        feedback! We'll review
-                                                        it soon.
+                                                        {m.page_feedback_success()}
                                                     </div>
                                                 {/if}
                                                 {#if feedbackError}
@@ -848,12 +851,12 @@
                                                             for="feedback-title-mobile"
                                                             class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1.5"
                                                         >
-                                                            Title
+                                                            {m.page_feedback_title()}
                                                         </label>
                                                         <Input
                                                             id="feedback-title-mobile"
                                                             type="text"
-                                                            placeholder="What's your idea?"
+                                                            placeholder={m.page_feedback_title_placeholder()}
                                                             bind:value={
                                                                 feedbackTitle
                                                             }
@@ -866,11 +869,11 @@
                                                             for="feedback-description-mobile"
                                                             class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1.5"
                                                         >
-                                                            Description
+                                                            {m.page_feedback_description()}
                                                         </label>
                                                         <Textarea
                                                             id="feedback-description-mobile"
-                                                            placeholder="Tell us more about your idea..."
+                                                            placeholder={m.page_feedback_description_placeholder()}
                                                             bind:value={
                                                                 feedbackDescription
                                                             }
@@ -890,12 +893,12 @@
                                                             <div
                                                                 class="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white"
                                                             ></div>
-                                                            Submitting...
+                                                            {m.page_feedback_submitting()}
                                                         {:else}
                                                             <Send
                                                                 class="h-3.5 w-3.5"
                                                             />
-                                                            Submit Idea
+                                                            {m.page_feedback_submit()}
                                                         {/if}
                                                     </button>
                                                 </form>
@@ -933,14 +936,12 @@
                                 <h3
                                     class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-neutral-100 mb-4"
                                 >
-                                    No Updates Yet
+                                    {m.page_no_updates()}
                                 </h3>
                                 <p
                                     class="text-gray-500 dark:text-neutral-400 max-w-sm mx-auto"
                                 >
-                                    We haven't published any updates yet. Check
-                                    back soon for the latest features and
-                                    improvements!
+                                    {m.page_no_updates_description()}
                                 </p>
                             </div>
                         {/if}
@@ -959,14 +960,14 @@
                             class="text-lg font-semibold mb-3 text-gray-900 dark:text-neutral-100 flex items-center gap-2"
                         >
                             <MessageSquare class="h-5 w-5 text-primary" />
-                            Share Your Ideas
+                            {m.page_share_ideas()}
                         </h3>
 
                         {#if feedbackSuccess}
                             <div
                                 class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-3 py-2 rounded-lg text-sm mb-4"
                             >
-                                Thanks for your feedback! We'll review it soon.
+                                {m.page_feedback_success()}
                             </div>
                         {/if}
 
@@ -987,13 +988,13 @@
                                     for="feedback-title"
                                     class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1.5"
                                 >
-                                    Title
+                                    {m.page_feedback_title()}
                                 </label>
                                 <input
                                     id="feedback-title"
                                     type="text"
                                     bind:value={feedbackTitle}
-                                    placeholder="What's your idea?"
+                                    placeholder={m.page_feedback_title_placeholder()}
                                     class="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 placeholder-gray-500 dark:placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary focus:border-transparent transition-colors text-sm"
                                     disabled={submittingFeedback}
                                 />
@@ -1004,12 +1005,12 @@
                                     for="feedback-description"
                                     class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1.5"
                                 >
-                                    Description
+                                    {m.page_feedback_description()}
                                 </label>
                                 <textarea
                                     id="feedback-description"
                                     bind:value={feedbackDescription}
-                                    placeholder="Tell us more about your idea..."
+                                    placeholder={m.page_feedback_description_placeholder()}
                                     rows="3"
                                     class="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 placeholder-gray-500 dark:placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary focus:border-transparent resize-none transition-colors text-sm"
                                     disabled={submittingFeedback}
@@ -1027,10 +1028,10 @@
                                     <div
                                         class="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white"
                                     ></div>
-                                    Submitting...
+                                    {m.page_feedback_submitting()}
                                 {:else}
                                     <Send class="h-3.5 w-3.5" />
-                                    Submit Idea
+                                    {m.page_feedback_submit()}
                                 {/if}
                             </button>
                         </form>
@@ -1052,7 +1053,7 @@
                                 class="text-lg font-semibold mb-3 text-gray-900 dark:text-neutral-100 flex items-center gap-2"
                             >
                                 <Vote class="h-5 w-5 text-primary" />
-                                Feature Voting
+                                {m.page_feature_voting()}
                             </h3>
                             <div class="space-y-2.5">
                                 {#each groupedEvents.proposed as event}
@@ -1097,13 +1098,13 @@
                                                 ? 'bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 border-gray-300 dark:border-neutral-700 text-gray-700 dark:text-neutral-300 hover:border-gray-400 dark:hover:border-neutral-600'
                                                 : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200 dark:hover:border-red-800 hover:text-red-700 dark:hover:text-red-300'}"
                                             title={votedEvents.has(event.id)
-                                                ? "Click to remove your vote"
-                                                : "Click to vote for this feature"}
+                                                ? m.page_remove_vote_tooltip()
+                                                : m.page_vote_tooltip()}
                                         >
                                             <ThumbsUp class="h-3.5 w-3.5" />
                                             {votedEvents.has(event.id)
-                                                ? "Remove Vote"
-                                                : "Vote"} ({event.votes})
+                                                ? m.page_remove_vote()
+                                                : m.page_vote()} ({event.votes})
                                         </button>
                                     </div>
                                     {#if event !== groupedEvents.proposed[groupedEvents.proposed.length - 1]}

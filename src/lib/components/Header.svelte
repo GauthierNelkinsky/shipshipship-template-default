@@ -2,11 +2,39 @@
     import { goto } from "$app/navigation";
     import { settings } from "$lib/stores/settings";
     import ThemeSelector from "$lib/components/ThemeSelector.svelte";
+    import LanguageSwitcher from "$lib/components/LanguageSwitcher.svelte";
     import { ArrowLeft } from "lucide-svelte";
     import { getApiEndpoint } from "$lib/config";
+    import { api } from "$lib/api";
+    import { onMount } from "svelte";
+    import * as m from "$lib/paraglide/messages";
 
     export let showBackButton = false;
     export let title = ""; // Optional override for the title
+
+    let translationsEnabled = true; // Default to true
+
+    onMount(async () => {
+        try {
+            const themeSettings = await api.getThemeSettings();
+
+            // Settings is returned as an object, not an array
+            if (themeSettings && themeSettings.settings) {
+                const settingsObj = themeSettings.settings as Record<
+                    string,
+                    any
+                >;
+                translationsEnabled =
+                    settingsObj["enable-translations"] ?? true;
+            } else {
+                translationsEnabled = true;
+            }
+        } catch (err) {
+            console.error("Failed to load theme settings:", err);
+            // Keep default value of true if API call fails
+            translationsEnabled = true;
+        }
+    });
 
     // Function to get the complete URL for images that might be relative to the API
     function getCompleteImageUrl(url: string | undefined): string {
@@ -49,7 +77,7 @@
                     <button
                         on:click={() => goto("/")}
                         class="flex items-center justify-center w-7 h-7 rounded-md hover:bg-accent/50 transition-colors flex-shrink-0"
-                        title="Back to changelog"
+                        title={m.header_back_to_changelog()}
                     >
                         <ArrowLeft class="h-4 w-4" />
                     </button>
@@ -97,7 +125,7 @@
                         <h1
                             class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-neutral-100 truncate px-3 py-2"
                         >
-                            {title || $settings?.title || "Changelog"}
+                            {title || $settings?.title || m.header_changelog()}
                         </h1>
                     </a>
                 {:else}
@@ -142,14 +170,19 @@
                         <h1
                             class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-neutral-100 truncate px-3 py-2"
                         >
-                            {title || $settings?.title || "Changelog"}
+                            {title || $settings?.title || m.header_changelog()}
                         </h1>
                     </div>
                 {/if}
             </div>
 
-            <!-- Theme Toggle -->
-            <ThemeSelector />
+            <!-- Language Switcher and Theme Toggle -->
+            <div class="flex items-center gap-2">
+                {#if translationsEnabled}
+                    <LanguageSwitcher />
+                {/if}
+                <ThemeSelector />
+            </div>
         </div>
     </div>
 </header>

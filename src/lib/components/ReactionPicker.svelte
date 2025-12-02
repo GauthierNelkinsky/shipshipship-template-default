@@ -3,6 +3,7 @@
     import { api } from "$lib/api";
     import Icon from "@iconify/svelte";
     import { SmilePlus } from "lucide-svelte";
+    import * as m from "$lib/paraglide/messages";
 
     interface Props {
         eventId: number;
@@ -28,36 +29,48 @@
     let showPopover = $state(false);
     let popoverRef: HTMLDivElement;
 
-    const reactionTypes = [
+    const reactionTypes = $derived([
         {
             type: "thumbs_up",
             icon: "fluent-emoji-flat:thumbs-up",
-            label: "Like",
+            label: m.reaction_like(),
         },
-        { type: "heart", icon: "fluent-emoji-flat:red-heart", label: "Love" },
-        { type: "fire", icon: "fluent-emoji-flat:fire", label: "Hot" },
+        {
+            type: "heart",
+            icon: "fluent-emoji-flat:red-heart",
+            label: m.reaction_love(),
+        },
+        {
+            type: "fire",
+            icon: "fluent-emoji-flat:fire",
+            label: m.reaction_hot(),
+        },
         {
             type: "party",
             icon: "fluent-emoji-flat:party-popper",
-            label: "Excited",
+            label: m.reaction_excited(),
         },
-        { type: "eyes", icon: "fluent-emoji-flat:eyes", label: "Watching" },
+        {
+            type: "eyes",
+            icon: "fluent-emoji-flat:eyes",
+            label: m.reaction_watching(),
+        },
         {
             type: "lightbulb",
             icon: "fluent-emoji-flat:light-bulb",
-            label: "Great Idea",
+            label: m.reaction_great_idea(),
         },
         {
             type: "thinking",
             icon: "fluent-emoji-flat:thinking-face",
-            label: "Thinking",
+            label: m.reaction_thinking(),
         },
         {
             type: "thumbs_down",
             icon: "fluent-emoji-flat:thumbs-down",
-            label: "Disagree",
+            label: m.reaction_disagree(),
         },
-    ];
+    ]);
 
     // Use $effect to handle initialReactions reactively
     $effect(() => {
@@ -127,7 +140,7 @@
                 }, 300);
             }
         } catch (err: any) {
-            error = err.message || "Failed to update reaction";
+            error = err.message || m.reaction_error();
             setTimeout(() => {
                 error = "";
             }, 3000);
@@ -208,7 +221,7 @@
                 showPopover = !showPopover;
             }}
             class="inline-flex items-center {getButtonSizeClasses()} rounded-full border border-dashed border-border hover:border-muted-foreground/40 hover:bg-muted transition-all duration-200"
-            title="Add reaction"
+            title={m.reaction_add()}
         >
             <SmilePlus class="h-3.5 w-3.5" />
         </button>
@@ -280,7 +293,7 @@
                 }}
                 disabled={loading}
                 class="inline-flex items-center px-1.5 py-1 rounded-full border border-border hover:border-muted-foreground/40 bg-background hover:bg-muted transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Add reaction"
+                title={m.reaction_add()}
             >
                 <SmilePlus class="h-3.5 w-3.5 text-muted-foreground" />
             </button>

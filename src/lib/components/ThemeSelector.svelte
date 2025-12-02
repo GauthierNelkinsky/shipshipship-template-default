@@ -4,26 +4,27 @@
     import { Button } from "$lib/components/ui";
     import { onMount } from "svelte";
     import { fly } from "svelte/transition";
+    import * as m from "$lib/paraglide/messages";
 
-    let selectedTheme: ThemePreference = "light";
-    let isOpen = false;
+    let selectedTheme = $state<ThemePreference>("light");
+    let isOpen = $state(false);
 
     onMount(() => {
         selectedTheme = theme.getPreference();
     });
 
-    const themeOptions = [
+    const themeOptions = $derived([
         {
             value: "light" as const,
-            label: "Light",
+            label: m.theme_light(),
             icon: Sun,
         },
         {
             value: "dark" as const,
-            label: "Dark",
+            label: m.theme_dark(),
             icon: Moon,
         },
-    ];
+    ]);
 
     function handleThemeSelect(themeValue: ThemePreference) {
         selectedTheme = themeValue;
@@ -49,8 +50,8 @@
         return () => document.removeEventListener("click", handleDocumentClick);
     });
 
-    $: currentOption = themeOptions.find(
-        (option) => option.value === selectedTheme,
+    const currentOption = $derived(
+        themeOptions.find((option) => option.value === selectedTheme),
     );
 </script>
 
@@ -59,10 +60,10 @@
     <Button
         variant="outline"
         size="sm"
-        on:click={toggleDropdown}
+        onclick={toggleDropdown}
         class="h-8 px-2 gap-1"
         type="button"
-        title="Select theme"
+        title={m.theme_select()}
         aria-expanded={isOpen}
         aria-haspopup="true"
     >
@@ -89,7 +90,7 @@
                 {#each themeOptions as option}
                     <Button
                         variant="ghost"
-                        on:click={() => handleThemeSelect(option.value)}
+                        onclick={() => handleThemeSelect(option.value)}
                         class="flex items-center w-full px-2 py-1.5 text-xs rounded-sm justify-start h-auto {selectedTheme ===
                         option.value
                             ? 'bg-accent text-accent-foreground'

@@ -3,6 +3,7 @@
     import { api } from "$lib/api";
     import { ExternalLink } from "lucide-svelte";
     import type { FooterLink } from "$lib/types";
+    import * as m from "$lib/paraglide/messages";
 
     let footerLinks: FooterLink[] = [];
     let loading = false;
@@ -76,7 +77,7 @@
                                 <p
                                     class="text-sm text-gray-500 dark:text-neutral-400 flex items-center justify-center gap-2"
                                 >
-                                    Shipped with
+                                    {m.footer_shipped_with()}
                                     <a
                                         href="https://github.com/GauthierNelkinsky/ShipShipShip"
                                         target="_blank"
@@ -115,7 +116,7 @@
                                 <p
                                     class="text-sm text-gray-500 dark:text-neutral-400 flex items-center justify-center gap-2"
                                 >
-                                    Shipped with
+                                    {m.footer_shipped_with()}
                                     <a
                                         href="https://github.com/GauthierNelkinsky/ShipShipShip"
                                         target="_blank"
@@ -163,7 +164,7 @@
                 <p
                     class="text-sm text-gray-500 dark:text-neutral-400 flex items-center gap-2"
                 >
-                    Shipped with
+                    {m.footer_shipped_with()}
                     <a
                         href="https://github.com/GauthierNelkinsky/ShipShipShip"
                         target="_blank"
