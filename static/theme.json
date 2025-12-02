@@ -8,13 +8,20 @@
   "features": ["Responsive", "Dark-mode", "Seo-optimized", "Modern UI"],
   "technologies": ["SvelteKit", "TypeScript", "Tailwind CSS"],
   "compatibility": {
-    "minVersion": "1.2.2"
+    "minVersion": "1.2.4"
   },
   "settings": [
     {
       "id": "display-newsletter",
       "label": "Display Newsletter",
       "description": "Show newsletter subscription form on the public page",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "id": "enable-translations",
+      "label": "Enable Translations",
+      "description": "Allow users to switch between available languages (English, German, French, Spanish, Chinese)",
       "type": "boolean",
       "default": true
     }

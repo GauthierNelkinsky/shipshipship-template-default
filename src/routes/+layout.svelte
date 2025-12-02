@@ -5,6 +5,7 @@
     import { theme } from "$lib/stores/theme";
     import { Toaster } from "$lib/components/ui/sonner";
     import ConfigStatus from "$lib/components/ConfigStatus.svelte";
+    import * as m from "$lib/paraglide/messages";
 
     let faviconUrl = "";
 
@@ -48,8 +49,8 @@
 </script>
 
 <svelte:head>
-    <title>{$settings.title || "Changelog"}</title>
-    <meta name="description" content="Product roadmap and changelog" />
+    <title>{$settings.title || m.layout_title()}</title>
+    <meta name="description" content={m.layout_description()} />
     {#if faviconUrl}
         <link rel="icon" type="image/x-icon" href={faviconUrl} />
     {/if}

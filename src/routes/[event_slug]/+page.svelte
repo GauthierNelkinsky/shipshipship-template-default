@@ -19,6 +19,7 @@
     import ReactionPicker from "$lib/components/ReactionPicker.svelte";
     import type { PageData } from "./$types";
     import type { Tag } from "$lib/types";
+    import * as m from "$lib/paraglide/messages";
 
     export let data: PageData;
 
@@ -113,13 +114,13 @@
         if (navigator.share) {
             navigator.share({
                 title: event.title,
-                text: `Check out this feature: ${event.title}`,
+                text: `${m.event_feature_prefix()} ${event.title}`,
                 url: window.location.href,
             });
         } else {
             // Fallback: copy to clipboard
             navigator.clipboard.writeText(window.location.href);
-            success = "Link copied to clipboard!";
+            success = m.event_link_copied();
         }
     }
 </script>
@@ -128,12 +129,12 @@
     <title>{event.title} - {eventSettings.title}</title>
     <meta
         name="description"
-        content={event.content || `Feature: ${event.title}`}
+        content={event.content || `${m.event_feature_prefix()} ${event.title}`}
     />
     <meta property="og:title" content={event.title} />
     <meta
         property="og:description"
-        content={event.content || `Feature: ${event.title}`}
+        content={event.content || `${m.event_feature_prefix()} ${event.title}`}
     />
     <meta property="og:type" content="article" />
     <meta property="og:url" content={$page.url.href} />
@@ -204,7 +205,7 @@
                                 variant="custom"
                                 class="bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800 text-xs font-medium hover:opacity-80"
                             >
-                                Estimated
+                                {m.event_estimated()}
                             </Badge>
                         {/if}
                         <time datetime={event.date}>

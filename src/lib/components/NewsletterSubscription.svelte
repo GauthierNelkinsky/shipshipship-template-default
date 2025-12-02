@@ -2,6 +2,7 @@
     import { Mail, Send, Check, X } from "lucide-svelte";
     import { Button, Input } from "$lib/components/ui";
     import { api } from "$lib/api";
+    import * as m from "$lib/paraglide/messages";
 
     export let variant: "sidebar" | "inline" = "sidebar";
 
@@ -13,7 +14,7 @@
 
     async function handleSubscribe() {
         if (!email || !email.includes("@")) {
-            error = "Please enter a valid email address";
+            error = m.newsletter_error_invalid_email();
             return;
         }
 
@@ -38,7 +39,7 @@
                 }, 3000);
             }
         } catch (err) {
-            error = "Network error. Please try again.";
+            error = m.newsletter_error_network();
         } finally {
             loading = false;
         }
@@ -57,30 +58,30 @@
             class="text-lg font-semibold mb-3 text-gray-900 dark:text-neutral-100 flex items-center gap-2"
         >
             <Mail class="h-5 w-5 text-primary" />
-            Stay Updated
+            {m.newsletter_stay_updated()}
         </h3>
 
         <p class="text-muted-foreground text-sm mb-3">
-            Get notified about new features and updates.
+            {m.newsletter_description_short()}
         </p>
 
         {#if success}
             <div
                 class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-3 py-2 rounded-lg text-sm mb-3"
             >
-                Successfully subscribed to newsletter!
+                {m.newsletter_success()}
             </div>
         {:else if alreadySubscribed}
             <div
                 class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200 px-3 py-2 rounded-lg text-sm mb-3"
             >
-                You are already subscribed to our newsletter!
+                {m.newsletter_already_subscribed()}
             </div>
         {:else}
             <div class="space-y-2.5">
                 <Input
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder={m.newsletter_placeholder_short()}
                     bind:value={email}
                     on:keypress={handleKeyPress}
                     disabled={loading}
@@ -103,10 +104,10 @@
                         <div
                             class="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white mr-2"
                         ></div>
-                        Subscribing...
+                        {m.newsletter_button_subscribing()}
                     {:else}
                         <Send class="h-3.5 w-3.5 mr-2" />
-                        Subscribe
+                        {m.newsletter_button_subscribe()}
                     {/if}
                 </Button>
             </div>
@@ -119,32 +120,31 @@
             class="text-lg font-semibold mb-3 text-gray-900 dark:text-neutral-100 flex items-center gap-2"
         >
             <Mail class="h-5 w-5 text-primary" />
-            Stay Updated
+            {m.newsletter_stay_updated()}
         </h3>
 
         <p class="text-muted-foreground text-sm mb-3">
-            Subscribe to our newsletter and be the first to know about new
-            features and updates.
+            {m.newsletter_description_long()}
         </p>
 
         {#if success}
             <div
                 class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-3 py-2 rounded-lg text-sm mb-3"
             >
-                Successfully subscribed to newsletter!
+                {m.newsletter_success()}
             </div>
         {:else if alreadySubscribed}
             <div
                 class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200 px-3 py-2 rounded-lg text-sm mb-3"
             >
-                You are already subscribed to our newsletter!
+                {m.newsletter_already_subscribed()}
             </div>
         {:else}
             <div class="space-y-2.5">
                 <div class="flex gap-2">
                     <Input
                         type="email"
-                        placeholder="Enter your email address"
+                        placeholder={m.newsletter_placeholder_long()}
                         bind:value={email}
                         on:keypress={handleKeyPress}
                         disabled={loading}
