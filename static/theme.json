@@ -8,22 +8,143 @@
   "features": ["Responsive", "Dark-mode", "Seo-optimized", "Modern UI"],
   "technologies": ["SvelteKit", "TypeScript", "Tailwind CSS"],
   "compatibility": {
-    "minVersion": "1.2.4"
+    "minVersion": "1.3.0"
   },
   "settings": [
     {
-      "id": "display-newsletter",
-      "label": "Display Newsletter",
-      "description": "Show newsletter subscription form on the public page",
-      "type": "boolean",
-      "default": true
+      "group": "Header",
+      "description": "Customize your website's header including title, logos, and navigation",
+      "settings": [
+        {
+          "id": "display-title-in-header",
+          "label": "Display Title in Header",
+          "description": "Show the title in the website header",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "id": "logo-light",
+          "label": "Logo (Light Theme)",
+          "description": "Upload logo image for light theme",
+          "type": "image",
+          "default": ""
+        },
+        {
+          "id": "logo-dark",
+          "label": "Logo (Dark Theme)",
+          "description": "Upload logo image for dark theme",
+          "type": "image",
+          "default": ""
+        }
+      ]
     },
     {
-      "id": "enable-translations",
-      "label": "Enable Translations",
-      "description": "Allow users to switch between available languages (English, German, French, Spanish, Chinese)",
-      "type": "boolean",
-      "default": true
+      "group": "Theme",
+      "description": "Configure your website's color scheme and appearance",
+      "settings": [
+        {
+          "id": "primary-color",
+          "label": "Primary Color",
+          "description": "The primary color for your website theme",
+          "type": "color",
+          "default": "#000000"
+        }
+      ]
+    },
+    {
+      "group": "Footer",
+      "description": "Manage footer navigation links organized in columns",
+      "settings": [
+        {
+          "id": "footer-links-left",
+          "label": "Footer Links (Left Column)",
+          "description": "Links to display in the left column of the footer",
+          "type": "array",
+          "items": [
+            {
+              "id": "displayName",
+              "label": "Display Name",
+              "description": "The text to display for the link",
+              "type": "text",
+              "default": ""
+            },
+            {
+              "id": "url",
+              "label": "URL",
+              "description": "The destination URL for the link",
+              "type": "text",
+              "default": ""
+            }
+          ],
+          "default": []
+        },
+        {
+          "id": "footer-links-middle",
+          "label": "Footer Links (Middle Column)",
+          "description": "Links to display in the middle column of the footer",
+          "type": "array",
+          "items": [
+            {
+              "id": "displayName",
+              "label": "Display Name",
+              "description": "The text to display for the link",
+              "type": "text",
+              "default": ""
+            },
+            {
+              "id": "url",
+              "label": "URL",
+              "description": "The destination URL for the link",
+              "type": "text",
+              "default": ""
+            }
+          ],
+          "default": []
+        },
+        {
+          "id": "footer-links-right",
+          "label": "Footer Links (Right Column)",
+          "description": "Links to display in the right column of the footer",
+          "type": "array",
+          "items": [
+            {
+              "id": "displayName",
+              "label": "Display Name",
+              "description": "The text to display for the link",
+              "type": "text",
+              "default": ""
+            },
+            {
+              "id": "url",
+              "label": "URL",
+              "description": "The destination URL for the link",
+              "type": "text",
+              "default": ""
+            }
+          ],
+          "default": []
+        }
+      ]
+    },
+    {
+      "group": "Content",
+      "description": "Configure how content is displayed and organized",
+      "settings": [
+        {
+          "id": "display-newsletter",
+          "label": "Display Newsletter",
+          "description": "Show newsletter subscription form on the public page",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "id": "enable-translations",
+          "label": "Enable Translations",
+          "description": "Allow users to switch between available languages (English, German, French, Spanish, Chinese)",
+          "type": "boolean",
+          "default": true
+        }
+      ]
     }
   ],
   "categories": [
@@ -47,8 +168,8 @@
     },
     {
       "id": "feedback",
-      "label": "Feedback",
-      "description": "User feedback and suggestions. This is the status where submitted feedback is added.",
+      "label": "Feedback Status",
+      "description": "When users submit feedback through the public page, it will be automatically assigned this status.",
       "order": 4
     }
   ]
