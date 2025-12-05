@@ -1,9 +1,5 @@
-export type EventStatus =
-  | "Backlogs"
-  | "Proposed"
-  | "Upcoming"
-  | "Release"
-  | "Archived";
+// EventStatus is now dynamic based on status mappings from the backend
+export type EventStatus = string;
 
 export type ReactionType =
   | "thumbs_up"
@@ -208,12 +204,12 @@ export interface ReorderFooterLinksRequest {
 export interface NewsletterAutomationSettings {
   id?: number;
   enabled: boolean;
-  trigger_statuses: EventStatus[];
+  trigger_statuses: string[];
   created_at?: string;
   updated_at?: string;
 }
 
 export interface UpdateNewsletterAutomationRequest {
   enabled?: boolean;
-  trigger_statuses?: EventStatus[];
+  trigger_statuses?: string[];
 }

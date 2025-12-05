@@ -1,34 +1,30 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { api } from "$lib/api";
+    import { themeSettings } from "$lib/stores/themeSettings";
     import { ExternalLink } from "lucide-svelte";
-    import type { FooterLink } from "$lib/types";
     import * as m from "$lib/paraglide/messages";
 
-    let footerLinks: FooterLink[] = [];
-    let loading = false;
-
     onMount(async () => {
-        await loadFooterLinks();
+        await themeSettings.load();
     });
 
-    async function loadFooterLinks() {
-        try {
-            loading = true;
-            const data = await api.getFooterLinksByColumn();
-            // Flatten the response into a single array for easier filtering
-            footerLinks = Object.values(
-                data.links || {},
-            ).flat() as FooterLink[];
-        } catch (err) {
-            console.error("Failed to load footer links:", err);
-        } finally {
-            loading = false;
-        }
+    function getLinksForColumn(column: "left" | "middle" | "right") {
+        const columnKey =
+            `footer-links-${column}` as keyof typeof $themeSettings;
+        return (
+            ($themeSettings[columnKey] as Array<{
+                displayName: string;
+                url: string;
+            }>) || []
+        );
     }
 
-    function getLinksForColumn(column: "left" | "middle" | "right") {
-        return footerLinks.filter((link) => link.column === column);
+    function hasAnyLinks() {
+        return (
+            getLinksForColumn("left").length > 0 ||
+            getLinksForColumn("middle").length > 0 ||
+            getLinksForColumn("right").length > 0
+        );
     }
 </script>
 
@@ -36,7 +32,7 @@
     class="border-t border-gray-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-sm"
 >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {#if footerLinks.length > 0}
+        {#if hasAnyLinks()}
             <!-- Footer with custom links -->
             <div class="py-8">
                 <div
@@ -49,17 +45,17 @@
                         {#each getLinksForColumn("left") as link}
                             <a
                                 href={link.url}
-                                target={link.open_in_new_window
+                                target={link.url.startsWith("http")
                                     ? "_blank"
                                     : "_self"}
-                                rel={link.open_in_new_window
+                                rel={link.url.startsWith("http")
                                     ? "noopener noreferrer"
                                     : ""}
                                 class="block text-sm text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-neutral-300 transition-colors"
                             >
                                 <span class="flex items-center gap-1">
-                                    {link.name}
-                                    {#if link.open_in_new_window}
+                                    {link.displayName}
+                                    {#if link.url.startsWith("http")}
                                         <ExternalLink class="h-3 w-3" />
                                     {/if}
                                 </span>
@@ -92,10 +88,10 @@
                             {#each getLinksForColumn("middle") as link}
                                 <a
                                     href={link.url}
-                                    target={link.open_in_new_window
+                                    target={link.url.startsWith("http")
                                         ? "_blank"
                                         : "_self"}
-                                    rel={link.open_in_new_window
+                                    rel={link.url.startsWith("http")
                                         ? "noopener noreferrer"
                                         : ""}
                                     class="block text-sm text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-neutral-300 transition-colors text-center"
@@ -103,8 +99,8 @@
                                     <span
                                         class="flex items-center justify-center gap-1"
                                     >
-                                        {link.name}
-                                        {#if link.open_in_new_window}
+                                        {link.displayName}
+                                        {#if link.url.startsWith("http")}
                                             <ExternalLink class="h-3 w-3" />
                                         {/if}
                                     </span>
@@ -137,10 +133,10 @@
                         {#each getLinksForColumn("right") as link}
                             <a
                                 href={link.url}
-                                target={link.open_in_new_window
+                                target={link.url.startsWith("http")
                                     ? "_blank"
                                     : "_self"}
-                                rel={link.open_in_new_window
+                                rel={link.url.startsWith("http")
                                     ? "noopener noreferrer"
                                     : ""}
                                 class="block text-sm text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-neutral-300 transition-colors text-center md:text-right"
@@ -148,8 +144,8 @@
                                 <span
                                     class="flex items-center justify-center md:justify-end gap-1"
                                 >
-                                    {link.name}
-                                    {#if link.open_in_new_window}
+                                    {link.displayName}
+                                    {#if link.url.startsWith("http")}
                                         <ExternalLink class="h-3 w-3" />
                                     {/if}
                                 </span>
