@@ -1139,4 +1139,118 @@
     article {
         position: relative;
     }
+
+    /* Modern table styles */
+    :global(.prose table) {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+        overflow: hidden;
+        border: 1px solid hsl(var(--border));
+        background: hsl(var(--card));
+    }
+
+    :global(.prose thead) {
+        background: hsl(var(--muted));
+        border-bottom: 2px solid hsl(var(--border));
+    }
+
+    :global(.prose thead th) {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: hsl(var(--foreground));
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    :global(.prose tbody tr) {
+        transition: background-color 0.15s ease-in-out;
+    }
+
+    :global(.prose tbody tr:not(:last-child) td) {
+        border-bottom: 1px solid hsl(var(--border));
+    }
+
+    :global(.prose tbody tr:hover) {
+        background: hsl(var(--muted) / 0.5);
+    }
+
+    :global(.prose tbody td) {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        color: hsl(var(--foreground));
+    }
+
+    :global(.prose th:first-child),
+    :global(.prose td:first-child) {
+        padding-left: 1.25rem;
+    }
+
+    :global(.prose th:last-child),
+    :global(.prose td:last-child) {
+        padding-right: 1.25rem;
+    }
+
+    /* Responsive table */
+    @media (max-width: 640px) {
+        :global(.prose table) {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+    }
+
+    /* Override any global prose styles for code elements */
+    :global(.prose code) {
+        background: hsl(var(--muted)) !important;
+        color: hsl(var(--foreground)) !important;
+        position: relative;
+        border-radius: calc(var(--radius) - 2px);
+        padding: 0.15rem 0.3rem !important;
+        font-family:
+            ui-monospace, SFMono-Regular, "Menlo", "Monaco", "Cascadia Code",
+            "Segoe UI Mono", "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace",
+            "Source Code Pro", "Fira Code", "Droid Sans Mono", "Courier New",
+            monospace !important;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    :global(.prose code::before),
+    :global(.prose code::after) {
+        content: none !important;
+    }
+
+    :global(.prose pre) {
+        background: hsl(var(--muted)) !important;
+        color: hsl(var(--foreground)) !important;
+        padding: 1rem !important;
+        border-radius: calc(var(--radius) - 2px);
+        overflow-x: auto;
+        margin: 1rem 0;
+        font-family:
+            ui-monospace, SFMono-Regular, "Menlo", "Monaco", "Cascadia Code",
+            "Segoe UI Mono", "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace",
+            "Source Code Pro", "Fira Code", "Droid Sans Mono", "Courier New",
+            monospace !important;
+    }
+
+    :global(.prose pre code) {
+        background: none !important;
+        padding: 0 !important;
+        font-size: 0.875rem;
+        font-weight: normal;
+        border-radius: 0;
+    }
+
+    :global(.prose pre::before),
+    :global(.prose pre::after),
+    :global(.prose pre code::before),
+    :global(.prose pre code::after) {
+        content: none !important;
+    }
 </style>
