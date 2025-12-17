@@ -165,13 +165,6 @@ class ApiClient {
     });
   }
 
-  async unsubscribeFromNewsletter(email: string) {
-    return this.request<{ message: string }>("/newsletter/unsubscribe", {
-      method: "POST",
-      body: JSON.stringify({ email }),
-    });
-  }
-
   async checkNewsletterSubscription(email: string) {
     return this.request<{ subscribed: boolean; active: boolean }>(
       `/newsletter/status?email=${encodeURIComponent(email)}`,

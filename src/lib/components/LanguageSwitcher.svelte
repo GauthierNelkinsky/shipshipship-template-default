@@ -2,30 +2,38 @@
     import { getLocale, locales, setLocale } from "$lib/paraglide/runtime";
     import Icon from "@iconify/svelte";
     import * as m from "$lib/paraglide/messages";
+    import { fly } from "svelte/transition";
 
     const languages: Record<string, string> = {
-        en: "English",
         de: "Deutsch",
-        fr: "Français",
+        en: "English",
         es: "Español",
+        fr: "Français",
+        nl: "Nederlands",
         zh: "中文",
     };
 
     const flags: Record<string, string> = {
-        en: "circle-flags:uk",
         de: "circle-flags:de",
-        fr: "circle-flags:fr",
+        en: "circle-flags:uk",
         es: "circle-flags:es",
+        fr: "circle-flags:fr",
+        nl: "circle-flags:nl",
         zh: "circle-flags:cn",
     };
 
     let isOpen = $state(false);
 
+    // Sort locales alphabetically for display
+    const sortedLocales = [...locales].sort();
+
     function toggleDropdown() {
         isOpen = !isOpen;
     }
 
-    async function switchLanguage(lang: "en" | "de" | "fr" | "es" | "zh") {
+    async function switchLanguage(
+        lang: "en" | "de" | "fr" | "es" | "zh" | "nl",
+    ) {
         await setLocale(lang);
         isOpen = false;
     }
@@ -74,11 +82,12 @@
 
     {#if isOpen}
         <div
+            transition:fly={{ duration: 200, y: -10 }}
             class="absolute top-full right-0 mt-1 min-w-[160px] rounded-md shadow-lg bg-popover border border-border overflow-hidden z-50"
             role="listbox"
             aria-label="Available languages"
         >
-            {#each locales as lang}
+            {#each sortedLocales as lang}
                 <button
                     onclick={(e) => {
                         e.stopPropagation();
